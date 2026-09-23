@@ -1,10 +1,11 @@
 {
-  // 型検査用 (noEmit)。src と test と generated/ssdk を 1 つの program で見る。実際の emit は
-  // tsconfig.build.json。
+  // 型検査用 (noEmit)。src と test と generated/ssdk と generated/client を 1 つの program で見る。
+  // 実際の emit は tsconfig.build.json (client は含めない —— dist と image に要らない)。
   //
-  // generated/ssdk (Smithy の生成物) が同じ program に居るので、生成物が通らない厳しさは付けられない
+  // generated/ (Smithy の生成物) が同じ program に居るので、生成物が通らない厳しさは付けられない
   // (実測): verbatimModuleSyntax は型だけの import を `import type` にしない生成物で TS1484/TS1295、
-  // noImplicitOverride は TS4114。`import type` の作法は eslint (consistent-type-imports) が見る。
+  // noImplicitOverride は TS4114、noPropertyAccessFromIndexSignature は client の
+  // auth/httpAuthSchemeProvider.ts で TS4111。`import type` の作法は eslint (consistent-type-imports) が見る。
   //
   // test/fixtures は「変換される TS」であって、この project の source ではない (受け皿の型は
   // src/compile.ts が読んで見せる)。含めると globalThis.__bh が TS7017 になる。
@@ -13,9 +14,14 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true,
-    "noPropertyAccessFromIndexSignature": true,
     "noEmit": true
   },
-  "include": ["src/**/*", "test/**/*", "generated/ssdk/**/*", "*.config.ts"],
+  "include": [
+    "src/**/*",
+    "test/**/*",
+    "generated/ssdk/**/*",
+    "generated/client/**/*",
+    "*.config.ts"
+  ],
   "exclude": ["node_modules", "dist", "test/fixtures/**"]
 }

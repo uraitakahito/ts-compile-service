@@ -141,6 +141,10 @@
                         "type": "string",
                         "description": "何で変換したか（typescript の版）"
                     },
+                    "hostTypes": {
+                        "type": "string",
+                        "description": "何に向けて変換したか（写した受け皿の型の tag。GetHealth と同じ値）。\n報告に載せるのに、クロールの段ごとに healthz を訊かせない"
+                    },
                     "scripts": {
                         "type": "array",
                         "items": {
@@ -157,6 +161,7 @@
                 },
                 "required": [
                     "cached",
+                    "hostTypes",
                     "scripts",
                     "typescript"
                 ]

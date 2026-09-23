@@ -9,7 +9,7 @@ image は GitHub Container Registry に `linux/arm64` で公開されていて�
 
 ```sh
 container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
-  ghcr.io/uraitakahito/ts-compile-service:v0.1.0
+  ghcr.io/uraitakahito/ts-compile-service:v0.2.0
 
 curl -s http://127.0.0.1:8080/healthz
 # {"ok":true,"typescript":"6.0.3","hostTypes":"v0.2.0"}
@@ -43,6 +43,7 @@ EOF
 ```json
 {
   "typescript": "6.0.3",
+  "hostTypes": "v0.2.0",
   "cached": false,
   "scripts": [
     {
@@ -107,7 +108,7 @@ Windmill の worker だけで、名前で届きます。
 # docker-compose.yml (capture-scheduler)
 services:
   ts-compile:
-    image: ghcr.io/uraitakahito/ts-compile-service:v0.1.0
+    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.0
     environment:
       - PORT=8080
       - HOST=0.0.0.0

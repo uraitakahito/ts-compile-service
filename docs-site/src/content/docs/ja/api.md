@@ -58,11 +58,12 @@ runtime の衝突になるのと同じです。
 置き換わります。`version`・`phase`・`options` は触らずに返ります。
 
 ```json
-{ "typescript": "6.0.3", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
 ```
 
-`typescript` は出力を作った compiler の版。`cached` は、同じ source の hash の並びを最近 compile して
-いて、答えが memory から出たとき `true`。
+`typescript` は出力を作った compiler の版。`hostTypes` は何に向けて compile したか（受け皿の型の
+capture-scripts の tag。`/healthz` が名乗るのと同じ値）で、報告に両方を載せるのにサービスへ訊き直さずに
+済む。`cached` は、同じ source の hash の並びを最近 compile していて、答えが memory から出たとき `true`。
 
 ### 400 ValidationException
 

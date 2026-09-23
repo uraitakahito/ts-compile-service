@@ -104,6 +104,7 @@ export const serializeCompileResponse = async (
   let body: any;
   body = JSON.stringify(take(input, {
     'cached': [],
+    'hostTypes': [],
     'scripts': _ => se_ScriptList(_, context),
     'typescript': [],
   }));

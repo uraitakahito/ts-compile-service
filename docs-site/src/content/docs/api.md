@@ -59,11 +59,13 @@ The same list, in the same order, with `source` replaced by the emitted JavaScri
 by the hash of that JavaScript. `version`, `phase` and `options` come back untouched.
 
 ```json
-{ "typescript": "6.0.3", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
 ```
 
-`typescript` is the compiler version that produced the output. `cached` is `true` when the same
-sequence of source hashes was compiled recently and the answer came from memory.
+`typescript` is the compiler version that produced the output. `hostTypes` is the capture-scripts
+tag whose host types it was compiled against, the same value `/healthz` reports, so a report can
+record both without asking the service again. `cached` is `true` when the same sequence of source
+hashes was compiled recently and the answer came from memory.
 
 ### 400 ValidationException
 

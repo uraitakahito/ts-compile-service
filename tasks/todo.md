@@ -1,10 +1,16 @@
 # 後回しの棚の段取り（計画: https://claude.ai/artifact/2CfGqX9peGkNmuBzA7n8Q5）
 
-- [ ] 段 1 docs-site: Astro + Starlight（en が根 / ja は /ja/）、4 ページ、check-doc-refs（en/ja の対・内部リンク・path の実在・API の表 ⇔ openapi.json）、docs.yaml / site.yaml、README を 4 節に
-- [ ] 段 2 client 生成: projections.client → generated/client、Compile の output に hostTypes、契約試験、tsconfig の 2 つ（TS4111・TS2339）、tag v0.2.0
+- [x] 段 1 docs-site: Astro + Starlight（en が根 / ja は /ja/）、4 ページ、check-doc-refs（en/ja の対・内部リンク・path の実在・API の表 ⇔ openapi.json）、docs.yaml / site.yaml、README を 4 節に（#4。Pages は main の docs.yaml が作った。en/ja とも 200）
+- [x] 段 2 client 生成: projections.client → generated/client、Compile の output に hostTypes、契約試験 5 本、tsconfig の 2 つ（TS4111・TS2339）、tag v0.2.0
 - [ ] 段 3 report に jsSha256: ledger（schema・mergeCompiled・GET）v0.55.0 ＋ scheduler（compose v0.2.0・Compiled.hostTypes・flow・report_level・e2e）v0.22.0、dev:up → e2e 4 本
 
 下ろした物（再提案しない）: amd64 の image（要る環境が無い）、npm への公開（その段階ではない。scheduler は fetch のまま）。
+
+## 反証の記録（後回しの棚）
+
+- 段 1: api.md の 422 を消す → check-doc-refs 赤（status が違う）。model に無い `DELETE /compile` の行 → 赤。`ja/api.md` を消す → 赤（対 ＋ ja の 3 ページのリンク先）。無いページへのリンク → 赤。建てた HTML のリンクは全部 base 付き（ja は `/ja` も）
+- 段 2: service.ts の 422 の throw を `SourceHashMismatch` に差し替える → client の試験（instanceof CompileFailed）と server の試験（errortype の header）が赤。`generated/package.json` の `version` を消す → typecheck が TS2339 ×2（生成 client の runtimeConfig）。`smithy:check` は working tree の生成物を index と比べるので、model を変えた直後は stage してから走らせる
+- 段 2 で分かったこと: `noPropertyAccessFromIndexSignature` を外すと eslint の `dot-notation` が `process.env["HOST"]` を `process.env.HOST` に直させる（src が失う規則はこの 1 つ）
 
 ---
 
