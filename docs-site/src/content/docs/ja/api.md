@@ -85,7 +85,8 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 ### 409 SourceHashMismatch
 
 `sha256` が `source` と合わない。サービスは保証できない物を変換しません。台帳とここの間で変わった
-スクリプトは、新しい hash で emit されるのではなく断られます。
+スクリプトは、新しい hash で emit されるのではなく断られます。TCP が守っているのになぜ照合するのかは
+[なぜ照合するのか](/#なぜ照合するのか) を参照。
 
 ```json
 { "message": "autoscroll: sha256 が台帳の約束と違う", "id": "autoscroll" }
