@@ -88,7 +88,9 @@ This answer comes from the generated server, before any hand-written code runs.
 ### 409 SourceHashMismatch
 
 `sha256` does not match `source`. The service does not convert what it cannot vouch for. A script
-altered between the ledger and here is refused rather than emitted under a fresh hash.
+altered between the ledger and here is refused rather than emitted under a fresh hash. Why the
+check exists at all, when TCP already protects the bytes: see
+[Why verify at every hop](/#why-verify-at-every-hop).
 
 ```json
 { "message": "autoscroll: sha256 が台帳の約束と違う", "id": "autoscroll" }

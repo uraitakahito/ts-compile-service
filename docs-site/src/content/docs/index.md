@@ -28,6 +28,34 @@ The hashes form a chain. The ledger's hash is on the TypeScript, the service's h
 JavaScript, and each consumer verifies before it acts. A script that changed in transit is
 refused (409) rather than converted.
 
+### Why verify at every hop
+
+TCP/IP does protect data in transit, but only between the two sockets of one connection. A
+script travels further than that. From capture-ledger through Windmill to this service, back
+through Windmill and on to BrowserHive it crosses several connections, and in between the bytes
+sleep twice in Windmill's database, are re-serialised as JSON and then as protobuf, and are
+picked out by a flow expression. Whatever happens while the bytes are off the wire, the next
+connection's checksum is computed from the bytes as they are by then, so TCP never complains.
+
+The sha256 is minted where the bytes are born and recomputed by whoever is about to use them,
+so one check spans the wires, the databases and the runtimes. The ledger stamps the TypeScript,
+this service stamps the JavaScript it emits, and each consumer (this service, then BrowserHive)
+compares exactly one thing: the digest of the `source` in the request against the `sha256` in
+the same request. No database and no ledger is consulted.
+
+:::note[The classic argument (end-to-end argument, 1984)]
+Even on a network built only from reliable links, a file-transfer program compares a checksum
+at the end, because a byte corrupted on an intermediate host's disk or in its memory is
+invisible to every link check. Correctness can only be confirmed by the endpoint that knows what
+the data is. For a script, those endpoints are the ledger that produces the bytes and BrowserHive
+that runs them.
+:::
+
+What the check can say is only "what was sent arrived unchanged". A script whose `source` and
+`sha256` were both replaced passes (that is a job for signatures, not for this check), and
+nothing about the content is inspected. The check runs before the script does, because writing
+"this digest ran" into the archive after running something else would make the archive lie.
+
 ## Why a service, and not a transpile step
 
 Stripping types is not enough. A transpiler that only erases annotations will happily run
