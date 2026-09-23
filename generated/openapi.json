@@ -1,0 +1,309 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "ts-compile-service",
+        "version": "2026-09-23",
+        "description": "TypeScript を型検査して JavaScript にする。型が通らなければ 1 本も返さない。"
+    },
+    "paths": {
+        "/compile": {
+            "post": {
+                "description": "台帳が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。",
+                "operationId": "Compile",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CompileRequestContent"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Compile 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompileResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ValidationException 400 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationExceptionResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "SourceHashMismatch 409 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SourceHashMismatchResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "CompileFailed 422 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/CompileFailedResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "description": "起きているか。何で変換するか（typescript の版と、写した受け皿の型の tag）。",
+                "operationId": "GetHealth",
+                "responses": {
+                    "200": {
+                        "description": "GetHealth 200 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetHealthResponseContent"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "ValidationException 400 response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationExceptionResponseContent"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "CompileFailedResponseContent": {
+                "type": "object",
+                "description": "1 本でも型が通らなかった。1 本も返さない。",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "typescript": {
+                        "type": "string"
+                    },
+                    "diagnostics": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Diagnostic"
+                        }
+                    }
+                },
+                "required": [
+                    "diagnostics",
+                    "message",
+                    "typescript"
+                ]
+            },
+            "CompileRequestContent": {
+                "type": "object",
+                "properties": {
+                    "scripts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Script"
+                        },
+                        "maxItems": 100,
+                        "minItems": 1
+                    }
+                },
+                "required": [
+                    "scripts"
+                ]
+            },
+            "CompileResponseContent": {
+                "type": "object",
+                "properties": {
+                    "typescript": {
+                        "type": "string",
+                        "description": "何で変換したか（typescript の版）"
+                    },
+                    "scripts": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Script"
+                        },
+                        "maxItems": 100,
+                        "minItems": 1,
+                        "description": "入力と同じ形。source と sha256 だけ JS になる"
+                    },
+                    "cached": {
+                        "type": "boolean",
+                        "description": "同じ TS の並びを前にも変換していたか"
+                    }
+                },
+                "required": [
+                    "cached",
+                    "scripts",
+                    "typescript"
+                ]
+            },
+            "Diagnostic": {
+                "type": "object",
+                "properties": {
+                    "file": {
+                        "type": "string"
+                    },
+                    "line": {
+                        "type": "number"
+                    },
+                    "col": {
+                        "type": "number"
+                    },
+                    "code": {
+                        "type": "string",
+                        "description": "TS2322 のような code"
+                    },
+                    "message": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "code",
+                    "message"
+                ]
+            },
+            "GetHealthResponseContent": {
+                "type": "object",
+                "properties": {
+                    "ok": {
+                        "type": "boolean"
+                    },
+                    "typescript": {
+                        "type": "string"
+                    },
+                    "hostTypes": {
+                        "type": "string",
+                        "description": "写した capture-scripts の tag（capture-scripts.pin の中身）"
+                    }
+                },
+                "required": [
+                    "hostTypes",
+                    "ok",
+                    "typescript"
+                ]
+            },
+            "Phase": {
+                "type": "string",
+                "enum": [
+                    "preload",
+                    "behavior"
+                ]
+            },
+            "Script": {
+                "type": "object",
+                "description": "目録の 1 本。台帳が送る形そのもの。",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "minLength": 1,
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                    },
+                    "version": {
+                        "type": "number"
+                    },
+                    "phase": {
+                        "$ref": "#/components/schemas/Phase"
+                    },
+                    "source": {
+                        "type": "string"
+                    },
+                    "sha256": {
+                        "type": "string",
+                        "pattern": "^[0-9a-f]{64}$",
+                        "description": "source のバイト列の sha256（hex）"
+                    },
+                    "options": {}
+                },
+                "required": [
+                    "id",
+                    "phase",
+                    "sha256",
+                    "source",
+                    "version"
+                ]
+            },
+            "SourceHashMismatchResponseContent": {
+                "type": "object",
+                "description": "送られた sha256 が source と合わない。運ぶ途中で入れ替わった物は変換しない。",
+                "properties": {
+                    "message": {
+                        "type": "string"
+                    },
+                    "id": {
+                        "type": "string",
+                        "maxLength": 64,
+                        "minLength": 1,
+                        "pattern": "^[a-z][a-z0-9-]*$"
+                    }
+                },
+                "required": [
+                    "id",
+                    "message"
+                ]
+            },
+            "ValidationExceptionField": {
+                "type": "object",
+                "description": "Describes one specific validation failure for an input member.",
+                "properties": {
+                    "path": {
+                        "type": "string",
+                        "description": "A JSONPointer expression to the structure member whose value failed to satisfy the modeled constraints."
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "A detailed description of the validation failure."
+                    }
+                },
+                "required": [
+                    "message",
+                    "path"
+                ]
+            },
+            "ValidationExceptionResponseContent": {
+                "type": "object",
+                "description": "A standard error for input validation failures.\nThis should be thrown by services when a member of the input structure\nfalls outside of the modeled or documented constraints.",
+                "properties": {
+                    "message": {
+                        "type": "string",
+                        "description": "A summary of the validation failure."
+                    },
+                    "fieldList": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationExceptionField"
+                        },
+                        "description": "A list of specific failures encountered while validating the input.\nA member can appear in this list more than once if it failed to satisfy multiple constraints."
+                    }
+                },
+                "required": [
+                    "message"
+                ]
+            }
+        }
+    }
+}

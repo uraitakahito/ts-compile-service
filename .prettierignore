@@ -1,0 +1,8 @@
+dist
+node_modules
+pnpm-lock.yaml
+generated/ssdk
+generated/openapi.json
+build
+.smithy-cli
+smithy-lock.json

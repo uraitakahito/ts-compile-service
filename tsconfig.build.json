@@ -1,0 +1,17 @@
+{
+  // emit 用。rootDir が repo の根なので、src/ → dist/src/、generated/ssdk/ → dist/generated/ssdk/ と
+  // 並びが保たれ、dist/src/*.js の `../generated/ssdk/…` がそのまま届く。
+  //
+  // generated/ssdk は CJS (generated/package.json の "type": "commonjs")。dist/generated/ にも
+  // その package.json が要るので、build script が最後に写す。
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist",
+    "rootDir": ".",
+    "sourceMap": true,
+    "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
+  },
+  "include": ["src/**/*", "generated/ssdk/**/*"],
+  "exclude": ["node_modules", "dist", "test"]
+}

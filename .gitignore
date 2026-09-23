@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Smithy CLI (scripts/smithy.sh が落とす。JRE 同梱・約 90 MB)
+.smithy-cli/
+# smithy build の出力。generated/ に写した物だけを commit する
+build/
+
+# dotenv
+.env
+.env.*
+!.env.example
