@@ -39,15 +39,15 @@ never actually triggers it.
 }
 ```
 
-| Field     | Constraint                         | Notes                                                           |
-| --------- | ---------------------------------- | --------------------------------------------------------------- |
-| `scripts` | 1 to 100 items                     | The whole catalogue for the level, in one request               |
-| `id`      | `^[a-z][a-z0-9-]*$`, 1 to 64 chars | Becomes the file name inside the program (`/src/<id>.ts`)       |
-| `version` | integer                            | Passed through untouched                                        |
-| `phase`   | `preload` or `behavior`            | Passed through untouched                                        |
-| `source`  | string                             | The TypeScript                                                  |
-| `sha256`  | `^[0-9a-f]{64}$`                   | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it |
-| `options` | any JSON document, optional        | Passed through untouched                                        |
+| Field     | Constraint                         | Notes                                                                                                                 |
+| --------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `scripts` | 0 to 100 items                     | The whole catalogue for the level, in one request. Empty is valid: nothing is compiled and `scripts` comes back empty |
+| `id`      | `^[a-z][a-z0-9-]*$`, 1 to 64 chars | Becomes the file name inside the program (`/src/<id>.ts`)                                                             |
+| `version` | integer                            | Passed through untouched                                                                                              |
+| `phase`   | `preload` or `behavior`            | Passed through untouched                                                                                              |
+| `source`  | string                             | The TypeScript                                                                                                        |
+| `sha256`  | `^[0-9a-f]{64}$`                   | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it                                                       |
+| `options` | any JSON document, optional        | Passed through untouched                                                                                              |
 
 All scripts are compiled **as one program**. They share the global scope in the page (none of
 them is a module), so two scripts declaring the same top-level name is a type error here, exactly
@@ -67,10 +67,14 @@ tag whose host types it was compiled against, the same value `/healthz` reports,
 record both without asking the service again. `cached` is `true` when the same sequence of source
 hashes was compiled recently and the answer came from memory.
 
+An empty catalogue answers the same way, with `scripts: []`. Nothing is compiled, but
+`typescript` and `hostTypes` are still there, so a level that runs nothing can report what would
+have compiled it.
+
 ### 400 ValidationException
 
 The request broke a modelled constraint: an id with a capital letter, a hash that is not 64 hex
-characters, an empty list. The body lists every violation with a JSON pointer to the field.
+characters, more than 100 scripts. The body lists every violation with a JSON pointer to the field.
 
 ```json
 {

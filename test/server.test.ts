@@ -95,12 +95,23 @@ describe("生成した server に本体を差す", () => {
     expect(compileCalls).toBe(before);
   });
 
-  it("空の scripts も 400 (length の下限)", async () => {
-    const res = await post({ scripts: [] });
-    expect(res.status).toBe(400);
-    expect(((await res.json()) as { fieldList: { path: string }[] }).fieldList[0]?.path).toBe(
-      "/scripts",
-    );
+  it("空の scripts は 200 で何もしない —— 何で・何に向けて変換するかは付く。2 回目は cache", async () => {
+    // 台帳が「何も走らせない」(scriptIds: []) と決めたクロールの段。変換する物は無いが、
+    // 報告には typescript と hostTypes が要る。本体の経路は空をそのまま通す (特別扱いは無い)
+    const before = compileCalls;
+    const first = await post({ scripts: [] });
+    expect(first.status).toBe(200);
+    expect(await first.json()).toEqual({
+      typescript: "6.0.3",
+      hostTypes: "v0.2.0",
+      cached: false,
+      scripts: [],
+    });
+    expect(compileCalls).toBe(before + 1);
+
+    const second = await post({ scripts: [] });
+    expect(((await second.json()) as { cached: boolean }).cached).toBe(true);
+    expect(compileCalls).toBe(before + 1);
   });
 
   it("sha256 が source と合わなければ 409。変換しない", async () => {

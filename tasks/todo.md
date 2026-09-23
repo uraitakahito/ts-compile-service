@@ -1,3 +1,10 @@
+# 空の目録を通す段取り（計画: https://claude.ai/artifact/Cbpndy3dg8FSS8tpt4hRWE）
+
+- [ ] 段 1 ts-compile-service: ScriptList の下限を 0 に（model 1 行、生成物 5 行）、試験（server の 400 → 200・compile・client）、CI の image job の curl、docs の表。tag v0.2.1
+- [ ] 段 2 capture-scheduler: compose を v0.2.1 に、e2e に対照実験（目録なしで hero-2x.svg が要求されない）、docs。v0.22.1。台帳は触らない
+
+---
+
 # 後回しの棚の段取り（計画: https://claude.ai/artifact/2CfGqX9peGkNmuBzA7n8Q5）
 
 - [x] 段 1 docs-site: Astro + Starlight（en が根 / ja は /ja/）、4 ページ、check-doc-refs（en/ja の対・内部リンク・path の実在・API の表 ⇔ openapi.json）、docs.yaml / site.yaml、README を 4 節に（#4。Pages は main の docs.yaml が作った。en/ja とも 200）

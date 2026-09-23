@@ -115,7 +115,9 @@ structure Script {
     options: Document
 }
 
-@length(min: 1, max: 100)
+/// 0 本も通す。台帳は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——
+/// それを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）
+@length(min: 0, max: 100)
 list ScriptList {
     member: Script
 }

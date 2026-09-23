@@ -127,7 +127,8 @@
                             "$ref": "#/components/schemas/Script"
                         },
                         "maxItems": 100,
-                        "minItems": 1
+                        "minItems": 0,
+                        "description": "0 本も通す。台帳は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——\nそれを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）"
                     }
                 },
                 "required": [
@@ -151,7 +152,7 @@
                             "$ref": "#/components/schemas/Script"
                         },
                         "maxItems": 100,
-                        "minItems": 1,
+                        "minItems": 0,
                         "description": "入力と同じ形。source と sha256 だけ JS になる"
                     },
                     "cached": {

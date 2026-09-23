@@ -31,6 +31,12 @@ describe("compile", () => {
     expect(out).not.toContain("export");
   });
 
+  it("0 本なら診断も出力も無い (受け皿の型だけの program)", () => {
+    // 台帳の `scriptIds: []`。空を「通った」と言う —— 診断ではなく、空の outputs
+    const r = compile([]);
+    expect("outputs" in r ? r.outputs.size : r.diagnostics).toBe(0);
+  });
+
   it("同じ TS からは同じバイト列が出る (前の測定で固定した sha256)", () => {
     // typescript の版か compilerOptions を変えると、ここが最初に赤くなる。それが狙い ——
     // WACZ に残る JS の hash が黙って変わらないように
