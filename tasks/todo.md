@@ -1,7 +1,12 @@
 # 空の目録を通す段取り（計画: https://claude.ai/artifact/Cbpndy3dg8FSS8tpt4hRWE）
 
-- [ ] 段 1 ts-compile-service: ScriptList の下限を 0 に（model 1 行、生成物 5 行）、試験（server の 400 → 200・compile・client）、CI の image job の curl、docs の表。tag v0.2.1
-- [ ] 段 2 capture-scheduler: compose を v0.2.1 に、e2e に対照実験（目録なしで hero-2x.svg が要求されない）、docs。v0.22.1。台帳は触らない
+- [x] 段 1 ts-compile-service: ScriptList の下限を 0 に（model 1 行、生成物 5 行）、試験（server の 400 → 200・compile・client）、CI の image job の curl、docs の表。#7 → **tag v0.2.1**（image は ghcr.io に出て pull 済み）
+- [x] 段 2 capture-scheduler: compose を v0.2.1 に、e2e に対照実験（目録なしで hero-2x.svg が要求されない）、docs。#80 → release → **v0.22.1**。台帳は触らない（docs の表「[] → 何も走らない」が直さずに真に戻った）
+
+## 反証の記録（空の目録）
+
+- 段 1: model を `min: 1` に戻して生成し直す → server の「空は 200」と client の「空の目録は 200」の 2 本が赤（ValidationException）。戻すと 24 本緑。docs の 400 の例に「空の list」が残っていたのを見つけて外した（機械の守りは無い。表の数字も同じ）
+- 段 2: 対照実験を **v0.2.0 のスタックで先に走らせる** → `[compile] compile 400 ValidationException: … length 0 at '/scripts' …: expected 'failed' to be 'succeeded'` で赤。compose を v0.2.1 にしてスタックを組み直す（scheduler に stack:up は無く、ledger の dev:down → dev:up）→ e2e 4 本緑。`scriptIds: []` を外す → `scripts` の判定で赤、その判定も外す → hero-2x.svg の判定で赤（`目録が空なのに何かが走った: expected 1 to be +0`）。戻して緑
 
 ---
 
