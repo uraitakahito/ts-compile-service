@@ -6,3 +6,7 @@ generated/openapi.json
 build
 .smithy-cli
 smithy-lock.json
+docs-site/node_modules
+docs-site/dist
+docs-site/.astro
+docs-site/package-lock.json

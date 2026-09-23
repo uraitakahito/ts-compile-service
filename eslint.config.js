@@ -16,6 +16,8 @@ export default tseslint.config(
       "types/**",
       ".smithy-cli/**",
       "build/**",
+      // npm の別 project (Astro)。root の tsconfig の外
+      "docs-site/**",
       "*.config.js",
       "*.config.mjs",
     ],
