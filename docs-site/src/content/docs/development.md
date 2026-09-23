@@ -23,8 +23,11 @@ step is readable in the GitHub UI.
   mapping.
 - `generated/openapi.json`, the same interface as OpenAPI 3.1, for readers and for the docs
   check.
+- `generated/client/`, a TypeScript client generated from the same model (the `client`
+  projection in `smithy-build.json`). It is not published and not in the image. Its one consumer
+  is the contract test below.
 
-Both are **committed**. Nobody needs a JVM to read the code, the runtime image never sees the code
+All three are **committed**. Nobody needs a JVM to read the code, the runtime image never sees the code
 generator, and CI runs `smithy:check`, which regenerates and then runs
 `git diff --exit-code -- generated`, so a model edit without its regenerated output is red.
 
@@ -60,6 +63,11 @@ copy. The source of truth is the other repository.
 good script, one with a type error, one with an `enum`). `test/server.test.ts` starts the
 generated server on port 0 and speaks HTTP to it, with the compiler replaced by a counting stub
 so it can assert that constraint violations never reach it.
+
+`test/client.test.ts` is the contract test: it drives the same server through the generated
+client, configured with nothing but an `endpoint`. If the hand-written service drifts from the
+model, the typed answers go red, as a missing member of the output or an error that is no longer
+a `CompileFailed` instance.
 
 ## The image
 

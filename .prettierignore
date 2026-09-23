@@ -2,6 +2,7 @@ dist
 node_modules
 pnpm-lock.yaml
 generated/ssdk
+generated/client
 generated/openapi.json
 build
 .smithy-cli

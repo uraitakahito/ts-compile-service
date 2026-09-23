@@ -62,6 +62,7 @@ export const createService = ({
     }
     const out: CompileOutput = {
       typescript,
+      hostTypes,
       cached: false,
       scripts: scripts.map((s): Script => {
         const js = present(r.outputs.get(`/src/${s.id}.js`), `emit の出力 ${s.id}`);

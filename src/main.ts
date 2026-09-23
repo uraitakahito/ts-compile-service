@@ -20,7 +20,7 @@ const integer = (name: string, fallback: number): number => {
 };
 
 const port = integer("PORT", 8080);
-const host = process.env["HOST"] ?? "0.0.0.0";
+const host = process.env.HOST ?? "0.0.0.0";
 const cacheMax = integer("TS_COMPILE_CACHE_MAX", 256);
 
 const server = createHttpServer(

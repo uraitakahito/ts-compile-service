@@ -282,6 +282,13 @@ export interface CompileOutput {
   typescript: string | undefined;
 
   /**
+   * 何に向けて変換したか（写した受け皿の型の tag。GetHealth と同じ値）。
+   * 報告に載せるのに、クロールの段ごとに healthz を訊かせない
+   * @public
+   */
+  hostTypes: string | undefined;
+
+  /**
    * 入力と同じ形。source と sha256 だけ JS になる
    * @public
    */
@@ -297,6 +304,7 @@ export interface CompileOutput {
 export namespace CompileOutput {
   const memberValidators : {
     typescript?: __MultiConstraintValidator<string>,
+    hostTypes?: __MultiConstraintValidator<string>,
     scripts?: __MultiConstraintValidator<Iterable<Script>>,
     cached?: __MultiConstraintValidator<boolean>,
   } = {};
@@ -309,6 +317,12 @@ export namespace CompileOutput {
         switch (member) {
           case "typescript": {
             memberValidators["typescript"] = new __CompositeValidator<string>([
+              new __RequiredValidator(),
+            ]);
+            break;
+          }
+          case "hostTypes": {
+            memberValidators["hostTypes"] = new __CompositeValidator<string>([
               new __RequiredValidator(),
             ]);
             break;
@@ -338,6 +352,7 @@ export namespace CompileOutput {
     }
     return [
       ...getMemberValidator("typescript").validate(obj.typescript, `${path}/typescript`),
+      ...getMemberValidator("hostTypes").validate(obj.hostTypes, `${path}/hostTypes`),
       ...getMemberValidator("scripts").validate(obj.scripts, `${path}/scripts`),
       ...getMemberValidator("cached").validate(obj.cached, `${path}/cached`),
     ];

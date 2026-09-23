@@ -21,8 +21,10 @@ UI で読めます。
 
 - `generated/ssdk/`。TypeScript の server SDK: 経路の振り分け・検証・serde・エラーの対応付け。
 - `generated/openapi.json`。同じ interface の OpenAPI 3.1。読む人のためと、docs の検査のため。
+- `generated/client/`。同じ model から生成した TypeScript の client（`smithy-build.json` の `client` の
+  projection）。npm には出さず、image にも入れない。消費者は下の契約試験だけ。
 
-どちらも **commit します**。code を読むのに JVM は要らず、runtime の image は code generator を見ず、
+3 つとも **commit します**。code を読むのに JVM は要らず、runtime の image は code generator を見ず、
 CI は `smithy:check`（生成し直して `git diff --exit-code -- generated`）を走らせるので、生成物を
 作り直さない model の変更は赤になります。
 
@@ -55,6 +57,10 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 `pnpm test` は vitest を走らせます。`test/compile.test.ts` は compiler の包みを fixture（通る物、型エラーの
 ある物、`enum` のある物）で試し、`test/server.test.ts` は生成した server を port 0 に起こして HTTP で
 話します。compiler は回数を数える偽物に差してあるので、制約の違反が本体に届かないことを言えます。
+
+`test/client.test.ts` が契約試験です。同じ server を、生成した client（設定は `endpoint` だけ）で叩きます。
+手で書いた service が model から外れれば、型付きの答えが赤になります。output の member が欠ける、
+エラーが `CompileFailed` の instance でなくなる、という形で。
 
 ## image
 

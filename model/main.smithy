@@ -32,6 +32,11 @@ operation Compile {
         @required
         typescript: String
 
+        /// 何に向けて変換したか（写した受け皿の型の tag。GetHealth と同じ値）。
+        /// 報告に載せるのに、クロールの段ごとに healthz を訊かせない
+        @required
+        hostTypes: String
+
         /// 入力と同じ形。source と sha256 だけ JS になる
         @required
         scripts: ScriptList

@@ -66,9 +66,12 @@ describe("生成した server に本体を差す", () => {
     expect(first.status).toBe(200);
     const body = (await first.json()) as {
       typescript: string;
+      hostTypes: string;
       cached: boolean;
       scripts: { id: string; version: number; phase: string; source: string; sha256: string }[];
     };
+    expect(body.typescript).toBe("6.0.3");
+    expect(body.hostTypes).toBe("v0.2.0");
     expect(body.cached).toBe(false);
     expect(body.scripts[0]).toMatchObject({ id: "good", version: 1, phase: "behavior" });
     expect(body.scripts[0]?.source).toContain("/** doc comment stays? */");

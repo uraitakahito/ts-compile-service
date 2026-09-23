@@ -1,4 +1,5 @@
 {
-  "//": "Smithy が生成した server SDK は拡張子無しの相対 import を書くので CJS で建てる。この package.json は generated/ 以下の module の形を CommonJS にするためだけの物で、build が dist/generated/ にも写す。",
-  "type": "commonjs"
+  "//": "Smithy が生成した物 (ssdk と client) は拡張子無しの相対 import を書くので CJS で建てる。この package.json は generated/ 以下の module の形を CommonJS にするための物で、build が dist/generated/ にも写す。version は生成 client の runtimeConfig が ../package.json から読む (無いと TS2339)。版ではない。",
+  "type": "commonjs",
+  "version": "0.0.0"
 }
