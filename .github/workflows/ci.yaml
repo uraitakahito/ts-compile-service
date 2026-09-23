@@ -46,3 +46,28 @@ jobs:
       - run: pnpm run format:check
       - run: pnpm test
       - run: pnpm run build
+
+  # runtime image を毎 PR で建てて、起こして、叩く。push はしない (それは release.yaml)。
+  # 「prod の image は CI が建てない」で、消した file の COPY が何 PR も生き残ったことがある —— それを防ぐ。
+  # runner は amd64 なので image も amd64 (ここで見るのは COPY と起動だけ。配るのは arm64)。
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f Containerfile -t ts-compile-service:ci .
+      - run: docker run -d --name tcs -p 127.0.0.1:8080:8080 ts-compile-service:ci
+      - name: healthz と compile が答える
+        run: |
+          for i in $(seq 1 20); do curl -fs http://127.0.0.1:8080/healthz && break; sleep 1; done
+          curl -fs http://127.0.0.1:8080/healthz | grep -q '"hostTypes"'
+          # 型が通らない 1 本 → 422 (受け皿の型が image に入っていなければ TS7017 ではなく別の答えになる)
+          src='const n: number = "x"; globalThis.__bh.report("x", { n });'
+          sha=$(printf '%s' "$src" | sha256sum | cut -d' ' -f1)
+          code=$(curl -s -o /tmp/body -w '%{http_code}' -H 'content-type: application/json' \
+            -d "{\"scripts\":[{\"id\":\"x\",\"version\":1,\"phase\":\"behavior\",\"source\":$(printf '%s' "$src" | jq -Rs .),\"sha256\":\"$sha\",\"options\":{}}]}" \
+            http://127.0.0.1:8080/compile)
+          cat /tmp/body; echo
+          test "$code" = 422 && grep -q TS2322 /tmp/body && ! grep -q TS7017 /tmp/body
+      - if: always()
+        run: docker logs tcs; docker rm -f tcs

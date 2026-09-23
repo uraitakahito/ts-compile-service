@@ -1,0 +1,15 @@
+# Whitelist mode: BuildKit reads `<file>.dockerignore` in preference to `.dockerignore`.
+# 全部を除外してから、Containerfile の COPY が要る物だけを戻す。COPY を足したらここにも足すこと ——
+# 足し忘れは "not found" で落ちる (黙って古い物が入ることは無い)。
+*
+
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!tsconfig.base.json
+!tsconfig.json
+!tsconfig.build.json
+!src/
+!generated/
+!types/
+!capture-scripts.pin
