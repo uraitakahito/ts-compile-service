@@ -69,5 +69,10 @@ jobs:
             http://127.0.0.1:8080/compile)
           cat /tmp/body; echo
           test "$code" = 422 && grep -q TS2322 /tmp/body && ! grep -q TS7017 /tmp/body
+          # 空の目録は 200 で、何もしない。台帳の `scriptIds: []` (何も走らせない) がここで落ちないように
+          code=$(curl -s -o /tmp/empty -w '%{http_code}' -H 'content-type: application/json' \
+            -d '{"scripts":[]}' http://127.0.0.1:8080/compile)
+          cat /tmp/empty; echo
+          test "$code" = 200 && grep -q '"scripts":\[\]' /tmp/empty && grep -q '"hostTypes"' /tmp/empty
       - if: always()
         run: docker logs tcs; docker rm -f tcs

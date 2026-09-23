@@ -38,15 +38,15 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 }
 ```
 
-| 欄        | 制約                            | 備考                                                  |
-| --------- | ------------------------------- | ----------------------------------------------------- |
-| `scripts` | 1〜100 本                       | その段の目録を丸ごと、1 つの request で               |
-| `id`      | `^[a-z][a-z0-9-]*$`、1〜64 文字 | program の中の file 名になる（`/src/<id>.ts`）        |
-| `version` | 整数                            | 触らずに返す                                          |
-| `phase`   | `preload` か `behavior`         | 触らずに返す                                          |
-| `source`  | 文字列                          | TypeScript                                            |
-| `sha256`  | `^[0-9a-f]{64}$`                | `source` の UTF-8 のバイト列の sha256。台帳が打った物 |
-| `options` | 任意の JSON document。省略可    | 触らずに返す                                          |
+| 欄        | 制約                            | 備考                                                                                  |
+| --------- | ------------------------------- | ------------------------------------------------------------------------------------- |
+| `scripts` | 0〜100 本                       | その段の目録を丸ごと、1 つの request で。空も通る: 何も変換せず、`scripts` は空で返る |
+| `id`      | `^[a-z][a-z0-9-]*$`、1〜64 文字 | program の中の file 名になる（`/src/<id>.ts`）                                        |
+| `version` | 整数                            | 触らずに返す                                                                          |
+| `phase`   | `preload` か `behavior`         | 触らずに返す                                                                          |
+| `source`  | 文字列                          | TypeScript                                                                            |
+| `sha256`  | `^[0-9a-f]{64}$`                | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                 |
+| `options` | 任意の JSON document。省略可    | 触らずに返す                                                                          |
 
 スクリプトは全部を**1 つの program**として compile します。ページの中では global を共有する（どれも
 module ではない）ので、2 本が同じ top-level の名前を宣言すればここで型エラーになります。向こうで
@@ -65,10 +65,13 @@ runtime の衝突になるのと同じです。
 capture-scripts の tag。`/healthz` が名乗るのと同じ値）で、報告に両方を載せるのにサービスへ訊き直さずに
 済む。`cached` は、同じ source の hash の並びを最近 compile していて、答えが memory から出たとき `true`。
 
+空の目録にも同じ形で答え、`scripts` は `[]`。何も変換しないが `typescript` と `hostTypes` は付くので、
+何も走らせない段でも「何で変換するはずだったか」を報告に載せられる。
+
 ### 400 ValidationException
 
-request が model の制約を破った: 大文字の入った id、hex 64 文字でない hash、空の list。本文は違反を全部、
-欄への JSON pointer 付きで並べます。
+request が model の制約を破った: 大文字の入った id、hex 64 文字でない hash、101 本以上の list。本文は違反を
+全部、欄への JSON pointer 付きで並べます。
 
 ```json
 {
