@@ -1,0 +1,67 @@
+name: docs
+
+# docs-site/ を GitHub Pages に出す。
+#
+# main だけ。PR は site.yaml の読むだけの検査で見る —— fork の branch をここで建てると、
+# 何を公開するかを fork が選べてしまう。
+#
+# job は 1 つ。OpenAPI の参照は Astro の外で建てない (口の表は docs の中で、
+# scripts/check-doc-refs.mjs が generated/openapi.json と突き合わせる)。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "scripts/check-doc-refs.mjs"
+      - "generated/openapi.json"
+      - "package.json"
+      - ".github/workflows/docs.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# deploy は 1 つずつ。cancel-in-progress にしない: 公開物の deploy を途中で止める方が、待つより悪い
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build and deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # root は pnpm の project、docs-site/ は npm の project。pnpm は root の `site:check` を
+      # 走らせるためだけに要る。cache の鍵は docs-site の lockfile (ここで入れるのはそれだけ)
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: docs-site の依存を入れる
+        run: npm ci --prefix docs-site
+
+      # site:build ではなく site:check。.md のページは `astro build` が描画の例外を握り潰して
+      # 緑になる (crawler の他の repo で実測) ので、check-doc-refs が無いと壊れたページが公開される
+      - name: 建てて、docs と repo のずれを見る
+        run: pnpm run site:check
+
+      - name: Pages の成果物を上げる
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs-site/dist
+
+      - id: deployment
+        uses: actions/deploy-pages@v5

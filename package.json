@@ -10,7 +10,8 @@
     "typescript は runtime の依存 —— 変換の本体 (src/compile.ts) が createProgram で型検査して emit する。",
     "生成物の作り直しは `pnpm run smithy` (scripts/smithy.sh。JRE 同梱の Smithy CLI を .smithy-cli/ に落とす)。",
     "generated/ は commit する。CI の smithy:check が再生成して diff を見る。",
-    "check の並びは CI (ci.yaml) と同じにすること。"
+    "check の並びは CI (ci.yaml) と同じにすること。",
+    "docs-site/ は npm の別 project (package-lock.json)。site:check (build ＋ scripts/check-doc-refs.mjs) は site.yaml が PR で走らせ、docs.yaml が main で Pages に出す。audit は両方の lockfile を見る。"
   ],
   "version": "0.1.0",
   "private": true,
@@ -35,9 +36,13 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "audit": "pnpm audit --audit-level=low",
+    "audit": "pnpm audit --audit-level=low && npm audit --prefix docs-site --audit-level=low",
     "check": "pnpm run audit && pnpm run smithy:check && pnpm run host-types:check && pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm test && pnpm run build",
-    "start": "node dist/src/main.js"
+    "start": "node dist/src/main.js",
+    "site:dev": "npm --prefix docs-site run dev",
+    "site:build": "npm --prefix docs-site run build",
+    "site:preview": "npm --prefix docs-site run preview",
+    "site:check": "pnpm run site:build && node scripts/check-doc-refs.mjs"
   },
   "dependencies": {
     "@aws-sdk/core": "3.977.9",

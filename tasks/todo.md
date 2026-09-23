@@ -1,3 +1,13 @@
+# 後回しの棚の段取り（計画: https://claude.ai/artifact/2CfGqX9peGkNmuBzA7n8Q5）
+
+- [ ] 段 1 docs-site: Astro + Starlight（en が根 / ja は /ja/）、4 ページ、check-doc-refs（en/ja の対・内部リンク・path の実在・API の表 ⇔ openapi.json）、docs.yaml / site.yaml、README を 4 節に
+- [ ] 段 2 client 生成: projections.client → generated/client、Compile の output に hostTypes、契約試験、tsconfig の 2 つ（TS4111・TS2339）、tag v0.2.0
+- [ ] 段 3 report に jsSha256: ledger（schema・mergeCompiled・GET）v0.55.0 ＋ scheduler（compose v0.2.0・Compiled.hostTypes・flow・report_level・e2e）v0.22.0、dev:up → e2e 4 本
+
+下ろした物（再提案しない）: amd64 の image（要る環境が無い）、npm への公開（その段階ではない。scheduler は fetch のまま）。
+
+---
+
 # ts-compile-service の段取り（計画: https://claude.ai/artifact/A2eFLj9EsMtHfDscH5vKj8）
 
 - [x] 段 1 capture-scripts を TS に（#1 → develop → release #2 → v0.2.0）

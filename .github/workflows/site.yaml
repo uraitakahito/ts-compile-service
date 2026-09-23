@@ -1,0 +1,60 @@
+name: site
+
+# docs-site/ (Astro/Starlight) のずれの検査。PR が、無い物を指す docs や
+# model と違う口の表を merge できないように。
+#
+# 走らせるのは `site:check` —— build **と** scripts/check-doc-refs.mjs。`site:build` だけでは足りない:
+# .md のページは `astro build` が描画の例外を握り潰して exit 0 になる (crawler の他の repo で実測)。
+# check-doc-refs.mjs が、両方の形で exit 1 にする側で、build が見ない物 (本文の path の実在、
+# api.md の表と generated/openapi.json の一致) も見る。
+#
+# 読むだけの CHECK。deploy せず secret も触らず、permissions は contents:read だけ。
+# docs.yaml (Pages に出す。だから main だけ) と違い、pull_request で走らせても fork が
+# 公開物を変えることはできない。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs-site/**"
+      - "scripts/check-doc-refs.mjs"
+      - "generated/openapi.json"
+      - "package.json"
+      - ".github/workflows/site.yaml"
+  pull_request:
+    paths:
+      - "docs-site/**"
+      - "scripts/check-doc-refs.mjs"
+      - "generated/openapi.json"
+      - "package.json"
+      - ".github/workflows/site.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Docs sync guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: docs-site の依存を入れる
+        run: npm ci --prefix docs-site
+
+      - name: 建てて、docs と repo のずれを見る
+        run: pnpm run site:check
