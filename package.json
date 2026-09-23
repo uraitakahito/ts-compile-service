@@ -1,0 +1,62 @@
+{
+  "name": "ts-compile-service",
+  "//": [
+    "package.json にコメントを書く方法の議論:",
+    "https://stackoverflow.com/questions/14221579/how-do-i-add-comments-to-package-json-for-npm-install",
+    "version は版ではない。版は tag (vX.Y.Z) で、tag を push すると release.yaml が image を ghcr.io に出す。",
+    "dependencies と devDependencies の線が runtime の image を決める (Containerfile は --prod)。",
+    "@smithy/* と @aws-sdk/core と tslib は generated/ssdk (Smithy が生成した server) が import する分。",
+    "@aws-sdk/core を引くのは restJson1 の codegen が AWS 側の物だから。この service は AWS を使わない。",
+    "typescript は runtime の依存 —— 変換の本体 (src/compile.ts) が createProgram で型検査して emit する。",
+    "生成物の作り直しは `pnpm run smithy` (scripts/smithy.sh。JRE 同梱の Smithy CLI を .smithy-cli/ に落とす)。",
+    "generated/ は commit する。CI の smithy:check が再生成して diff を見る。",
+    "check の並びは CI (ci.yaml) と同じにすること。"
+  ],
+  "version": "0.1.0",
+  "private": true,
+  "description": "TypeScript を型検査して JavaScript にする常駐サービス。interface は Smithy (model/main.smithy)",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.20.0+sha512.9a6f330a95b66446ea088faf1521405a8a01f07fde7124cc9958dfed52d4bb436737e65b08f85f37b46fcba375092558ac51262b816844b22f63406ed166bfee",
+  "scripts": {
+    "smithy": "bash scripts/smithy.sh",
+    "smithy:check": "pnpm run smithy && git diff --exit-code -- generated",
+    "smithy:format": "bash scripts/smithy.sh format",
+    "smithy:lock": "bash scripts/smithy.sh lock",
+    "host-types:check": "node scripts/check-host-types.mjs",
+    "clean": "rm -rf dist tsconfig.tsbuildinfo",
+    "build": "pnpm run clean && tsc -p tsconfig.build.json && cp generated/package.json dist/generated/package.json",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "audit": "pnpm audit --audit-level=low",
+    "check": "pnpm run audit && pnpm run smithy:check && pnpm run host-types:check && pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm test && pnpm run build",
+    "start": "node dist/src/main.js"
+  },
+  "dependencies": {
+    "@aws-sdk/core": "3.977.9",
+    "@smithy/core": "3.35.0",
+    "@smithy/fetch-http-handler": "5.7.2",
+    "@smithy/node-http-handler": "4.12.1",
+    "@smithy/server-common": "0.4.2",
+    "@smithy/server-node": "0.3.3",
+    "@smithy/types": "4.19.0",
+    "tslib": "2.8.1",
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.10.1",
+    "eslint": "^10.10.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.7",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "^5.0.1"
+  }
+}

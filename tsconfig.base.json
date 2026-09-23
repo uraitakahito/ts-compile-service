@@ -1,0 +1,15 @@
+{
+  // src/ (ESM) と generated/ (CJS。Smithy の生成物は拡張子無しの相対 import を書くので ESM にできない) の
+  // 共通部分。厳しさの違いは各 tsconfig が足す。
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node"]
+  }
+}

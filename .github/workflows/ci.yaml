@@ -1,0 +1,48 @@
+name: ci
+
+# `pnpm run check` と同じ顔ぶれを、同じ並びで、1 つずつ (どれが落ちたかを GitHub の UI で読めるように)。
+#
+# smithy:check は Smithy CLI (JRE 同梱・約 90 MB) を .smithy-cli/ に落とす。actions/cache で版ごとに持つ。
+# host-types:check は raw.githubusercontent.com へ出る。落ちたら、pin か写しのどちらかがずれている。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - uses: actions/cache@v5
+        with:
+          path: .smithy-cli
+          key: smithy-cli-${{ hashFiles('scripts/smithy.sh') }}
+
+      - run: pnpm run audit
+      - run: pnpm run smithy:check
+      - run: pnpm run host-types:check
+      - run: pnpm run typecheck
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm test
+      - run: pnpm run build

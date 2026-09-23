@@ -1,0 +1,5 @@
+# pnpm 11 の supply-chain policy (minimumReleaseAge) の例外。pnpm dedupe が書いた。
+# @smithy/core と @smithy/types は generated/ssdk が要る版で、公開からの日数が足りないぶんを名指しで通す。
+minimumReleaseAgeExclude:
+  - "@smithy/core@3.35.0"
+  - "@smithy/types@4.19.0"

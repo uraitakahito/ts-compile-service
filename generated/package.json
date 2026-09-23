@@ -1,0 +1,4 @@
+{
+  "//": "Smithy が生成した server SDK は拡張子無しの相対 import を書くので CJS で建てる。この package.json は generated/ 以下の module の形を CommonJS にするためだけの物で、build が dist/generated/ にも写す。",
+  "type": "commonjs"
+}
