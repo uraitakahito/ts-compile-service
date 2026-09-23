@@ -2,7 +2,11 @@
 
 - [x] 段 1 docs-site: Astro + Starlight（en が根 / ja は /ja/）、4 ページ、check-doc-refs（en/ja の対・内部リンク・path の実在・API の表 ⇔ openapi.json）、docs.yaml / site.yaml、README を 4 節に（#4。Pages は main の docs.yaml が作った。en/ja とも 200）
 - [x] 段 2 client 生成: projections.client → generated/client、Compile の output に hostTypes、契約試験 5 本、tsconfig の 2 つ（TS4111・TS2339）、tag v0.2.0
-- [ ] 段 3 report に jsSha256: ledger（schema・mergeCompiled・GET）v0.55.0 ＋ scheduler（compose v0.2.0・Compiled.hostTypes・flow・report_level・e2e）v0.22.0、dev:up → e2e 4 本
+- [x] 段 3 report に jsSha256: ledger（schema・mergeCompiled・GET）**v0.55.0**（#374 → release #375）＋ scheduler（compose v0.2.0・Compiled.hostTypes・flow・report_level・e2e）**v0.22.0**（#78 → release #79）。dev:down → dev:up（doctor 15 本 ✓）→ e2e 3 本緑（走る試験に hash の検査を足した）
+  - 段 2 の tag v0.2.0 は打った。image は ghcr.io に出て、Mac の Apple Container に pull できた
+  - ledger: `src/crawl/compiled.ts`（mergeCompiled、単体 7 本）、`POST /pages` の schema に必須の `compiled`、route の 400/409（配線 3 本）、GET に `jsSha256`/`compiledWith`、flow へ渡す形は `toDispatched` で変えない。check 緑（324 本）
+  - scheduler: compose を v0.2.0 に、`Compiled.hostTypes`、`report_level(…, compiled)` が身元と hash だけ運ぶ、flow の report に `compiled: results.compile`、metadata は `wmill generate-metadata -i` で 2 本だけ作り直し（report_level の lock は windmill-client 1.817.0 に）。check 緑（211 本）
+  - 台帳の記録（e2e のクロール）: autofetch@2 と autoscroll@3 の両方に `jsSha256`（TS の hash と別）と `compiledWith { typescript: "6.0.3", hostTypes: "v0.2.0" }`
 
 下ろした物（再提案しない）: amd64 の image（要る環境が無い）、npm への公開（その段階ではない。scheduler は fetch のまま）。
 
@@ -11,6 +15,8 @@
 - 段 1: api.md の 422 を消す → check-doc-refs 赤（status が違う）。model に無い `DELETE /compile` の行 → 赤。`ja/api.md` を消す → 赤（対 ＋ ja の 3 ページのリンク先）。無いページへのリンク → 赤。建てた HTML のリンクは全部 base 付き（ja は `/ja` も）
 - 段 2: service.ts の 422 の throw を `SourceHashMismatch` に差し替える → client の試験（instanceof CompileFailed）と server の試験（errortype の header）が赤。`generated/package.json` の `version` を消す → typecheck が TS2339 ×2（生成 client の runtimeConfig）。`smithy:check` は working tree の生成物を index と比べるので、model を変えた直後は stage してから走らせる
 - 段 2 で分かったこと: `noPropertyAccessFromIndexSignature` を外すと eslint の `dot-notation` が `process.env["HOST"]` を `process.env.HOST` に直させる（src が失う規則はこの 1 つ）
+- 段 3: scheduler の flow.yaml の `compiled` を `({ ...results.compile, scripts: flow_input.scripts })`（TS の hash を JS の hash として送る）にして push → e2e が `autofetch: JS の hash が TS の hash と同じ` で赤。戻して push → 緑。compiled を落とした報告 → 台帳が 400、前の段と違う hash → 409（route 試験）
+- 段 3 で分かったこと: 目録が空のクロール（`scriptIds: []`）は v0.21.0 から compile の段で 400（ts-compile-service の `scripts` は 1〜100 本）。この計画の前からの挙動で、直していない
 
 ---
 
