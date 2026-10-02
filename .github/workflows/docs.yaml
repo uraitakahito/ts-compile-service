@@ -2,7 +2,11 @@ name: docs
 
 # docs-site/ を GitHub Pages に出す。
 #
-# main だけ。PR は site.yaml の読むだけの検査で見る —— fork の branch をここで建てると、
+# リリースのタグ (v*) を push したときだけ。公開する docs は、出した版の docs にする。
+# main への push では走らせない —— main には、まだ出していない変更も入る。
+# github-pages の環境も、v* のタグからの deploy だけを許す。
+# 公開し直すときは、タグを指して起こす (gh workflow run docs.yaml --ref vX.Y.Z)。
+# PR は site.yaml の読むだけの検査で見る —— fork の branch をここで建てると、
 # 何を公開するかを fork が選べてしまう。
 #
 # job は 1 つ。OpenAPI の参照は Astro の外で建てない (口の表は docs の中で、
@@ -10,13 +14,7 @@ name: docs
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "docs-site/**"
-      - "scripts/check-doc-refs.mjs"
-      - "generated/openapi.json"
-      - "package.json"
-      - ".github/workflows/docs.yaml"
+    tags: ["v*"]
   workflow_dispatch:
 
 permissions:
