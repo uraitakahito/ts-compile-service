@@ -55,7 +55,8 @@ runtime の衝突になるのと同じです。
 ### 200
 
 同じ並びを同じ順で。`source` は emit した JavaScript に、`sha256` はその JavaScript の hash に
-置き換わります。`version`・`phase`・`options` は触らずに返ります。
+置き換わります。`id`・`version`・`phase`・`options` は触らずに返ります。答えが memory から出たときも同じで、
+いつも要求の物です。
 
 ```json
 { "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
@@ -63,7 +64,8 @@ runtime の衝突になるのと同じです。
 
 `typescript` は出力を作った compiler の版。`hostTypes` は何に向けて compile したか（受け皿の型の
 capture-scripts の tag。`/healthz` が名乗るのと同じ値）で、報告に両方を載せるのにサービスへ訊き直さずに
-済む。`cached` は、同じ source の hash の並びを最近 compile していて、答えが memory から出たとき `true`。
+済む。`cached` は、同じ source の hash の並びを最近 compile していて、JavaScript が memory から出たとき `true`。
+使い回すのは JavaScript だけで、同じ source を別の名前・別の `phase`・別の `options` で送れば、それが返る。
 
 空の目録にも同じ形で答え、`scripts` は `[]`。何も変換しないが `typescript` と `hostTypes` は付くので、
 何も走らせない段でも「何で変換するはずだったか」を報告に載せられる。

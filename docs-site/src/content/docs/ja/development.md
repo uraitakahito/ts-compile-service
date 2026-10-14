@@ -57,6 +57,8 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 `pnpm test` は vitest を走らせます。`test/compile.test.ts` は compiler の包みを fixture（通る物、型エラーの
 ある物、`enum` のある物）で試し、`test/server.test.ts` は生成した server を port 0 に起こして HTTP で
 話します。compiler は回数を数える偽物に差してあるので、制約の違反が本体に届かないことを言えます。
+`test/service.test.ts` は操作を直に、自分の cache で呼び、cache に当たったときの答えを固定します。使い回すのは
+JavaScript だけで、名前・版・`phase`・`options` は要求の物です。
 
 `test/client.test.ts` が契約試験です。同じ server を、生成した client（設定は `endpoint` だけ）で叩きます。
 手で書いた service が model から外れれば、型付きの答えが赤になります。output の member が欠ける、

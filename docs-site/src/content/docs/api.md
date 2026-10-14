@@ -56,7 +56,8 @@ as it would be a clash at runtime there.
 ### 200
 
 The same list, in the same order, with `source` replaced by the emitted JavaScript and `sha256`
-by the hash of that JavaScript. `version`, `phase` and `options` come back untouched.
+by the hash of that JavaScript. `id`, `version`, `phase` and `options` come back untouched, also
+when the answer comes from memory: they are always the request's own.
 
 ```json
 { "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
@@ -65,7 +66,8 @@ by the hash of that JavaScript. `version`, `phase` and `options` come back untou
 `typescript` is the compiler version that produced the output. `hostTypes` is the capture-scripts
 tag whose host types it was compiled against, the same value `/healthz` reports, so a report can
 record both without asking the service again. `cached` is `true` when the same sequence of source
-hashes was compiled recently and the answer came from memory.
+hashes was compiled recently and the JavaScript came from memory. Only the JavaScript is reused:
+the same source sent under another name, another `phase` or another `options` gets those back.
 
 An empty catalogue answers the same way, with `scripts: []`. Nothing is compiled, but
 `typescript` and `hostTypes` are still there, so a level that runs nothing can report what would

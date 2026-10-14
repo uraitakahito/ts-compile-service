@@ -60,8 +60,9 @@ hash, plus which compiler produced it:
 }
 ```
 
-Send the same list again and `cached` is `true`. The service remembers recent inputs by their
-sequence of hashes, so the second and later levels of a crawl cost nothing.
+Send the same list again and `cached` is `true`. The service remembers the JavaScript of recent
+inputs by their sequence of hashes, so the second and later levels of a crawl cost nothing. The
+names, `phase` and `options` in the answer are always the ones you sent.
 
 ## When it does not type-check
 
