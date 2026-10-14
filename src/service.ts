@@ -8,7 +8,11 @@ import { sha256 } from "./hash.js";
 /** 操作の外から差す物。試験では compile を偽物にして「本体が呼ばれていない」を言う。 */
 export interface ServiceDeps {
   compile: (scripts: readonly { id: string; source: string }[]) => Compiled;
-  cache: BoundedCache<CompileOutput>;
+  /**
+   * 値は JS の並び（要求の並びと同じ順）。id・版・phase・options は持たない —— それは同じ TS でも
+   * 要求ごとに違いうる（名前を変えた撮り直し、phase だけを変えた撮り直し、options だけ違う版）。
+   */
+  cache: BoundedCache<readonly string[]>;
   typescript: string;
   hostTypes: string;
 }
@@ -49,8 +53,23 @@ export const createService = ({
 
     // 鍵は TS の sha256 の並び。同じ目録は段ごとに来るので、2 段目からはここで返る
     const key = scripts.map((s) => s.sha256).join("+");
+
+    // **使い回すのは JS だけ。** id・版・phase・options は、いつもいまの要求から付ける。出てくる JS は
+    // source だけで決まり、ファイル名にしている id には依らない。答えごと覚えると、同じ TS を別の名前や
+    // 別の phase で頼んだ要求に、前の要求の物が返る（phase だけ違えば、違う口で黙って走る）
+    const answer = (js: readonly string[], cached: boolean): CompileOutput => ({
+      typescript,
+      hostTypes,
+      cached,
+      scripts: scripts.map((s, i): Script => {
+        const source = present(js[i], `${s.id} の JS`);
+        // source と sha256 だけ JS の物になる
+        return { ...s, source, sha256: sha256(source) };
+      }),
+    });
+
     const hit = cache.get(key);
-    if (hit !== undefined) return { ...hit, cached: true };
+    if (hit !== undefined) return answer(hit, true);
 
     const r = compile(scripts);
     if ("diagnostics" in r) {
@@ -60,18 +79,9 @@ export const createService = ({
         diagnostics: r.diagnostics,
       });
     }
-    const out: CompileOutput = {
-      typescript,
-      hostTypes,
-      cached: false,
-      scripts: scripts.map((s): Script => {
-        const js = present(r.outputs.get(`/src/${s.id}.js`), `emit の出力 ${s.id}`);
-        // version と phase と options はそのまま。source と sha256 だけ JS の物になる
-        return { ...s, source: js, sha256: sha256(js) };
-      }),
-    };
-    cache.set(key, out);
-    return await Promise.resolve(out);
+    const js = scripts.map((s) => present(r.outputs.get(`/src/${s.id}.js`), `emit の出力 ${s.id}`));
+    cache.set(key, js);
+    return await Promise.resolve(answer(js, false));
   },
 
   GetHealth: async () => await Promise.resolve({ ok: true, typescript, hostTypes }),

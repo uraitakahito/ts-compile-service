@@ -62,7 +62,9 @@ copy. The source of truth is the other repository.
 `pnpm test` runs vitest. `test/compile.test.ts` exercises the compiler wrapper on fixtures (a
 good script, one with a type error, one with an `enum`). `test/server.test.ts` starts the
 generated server on port 0 and speaks HTTP to it, with the compiler replaced by a counting stub
-so it can assert that constraint violations never reach it.
+so it can assert that constraint violations never reach it. `test/service.test.ts` calls the
+operation directly with a cache of its own, to pin down what a cache hit answers: the JavaScript
+is reused, the names, versions, `phase` and `options` are the request's.
 
 `test/client.test.ts` is the contract test: it drives the same server through the generated
 client, configured with nothing but an `endpoint`. If the hand-written service drifts from the
