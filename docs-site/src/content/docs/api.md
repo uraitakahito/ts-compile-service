@@ -60,7 +60,7 @@ by the hash of that JavaScript. `id`, `version`, `phase` and `options` come back
 when the answer comes from memory: they are always the request's own.
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.2.1", "cached": false, "scripts": ["…"] }
 ```
 
 `typescript` is the compiler version that produced the output. `hostTypes` is the capture-scripts
@@ -117,7 +117,7 @@ complete one to the consumer.
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.2.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.2.1" }
 ```
 
 `hostTypes` is the capture-scripts tag whose `types/host.d.ts` the service compiles against (the
