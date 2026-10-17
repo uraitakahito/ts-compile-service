@@ -10,10 +10,10 @@ configuration:
 
 ```sh
 container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
-  ghcr.io/uraitakahito/ts-compile-service:v0.2.0
+  ghcr.io/uraitakahito/ts-compile-service:v0.2.4
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.2.0"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.2.1"}
 ```
 
 `typescript` is the compiler version baked into the image. `hostTypes` is the tag of
@@ -45,7 +45,7 @@ hash, plus which compiler produced it:
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.2.0",
+  "hostTypes": "v0.2.1",
   "cached": false,
   "scripts": [
     {
@@ -111,7 +111,7 @@ only caller is the Windmill worker, which reaches it by name.
 # docker-compose.yml (capture-scheduler)
 services:
   ts-compile:
-    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.0
+    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.4
     environment:
       - PORT=8080
       - HOST=0.0.0.0

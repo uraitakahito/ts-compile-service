@@ -59,7 +59,7 @@ runtime の衝突になるのと同じです。
 いつも要求の物です。
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.2.0", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.2.1", "cached": false, "scripts": ["…"] }
 ```
 
 `typescript` は出力を作った compiler の版。`hostTypes` は何に向けて compile したか（受け皿の型の
@@ -112,7 +112,7 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.2.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.2.1" }
 ```
 
 `hostTypes` は、サービスが compile の相手にする `types/host.d.ts` が capture-scripts のどの tag の物か

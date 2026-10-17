@@ -9,10 +9,10 @@ image は GitHub Container Registry に `linux/arm64` で公開されていて�
 
 ```sh
 container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
-  ghcr.io/uraitakahito/ts-compile-service:v0.2.0
+  ghcr.io/uraitakahito/ts-compile-service:v0.2.4
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.2.0"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.2.1"}
 ```
 
 `typescript` は image に焼き込まれた compiler の版、`hostTypes` は image が持つ `types/host.d.ts` が
@@ -43,7 +43,7 @@ EOF
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.2.0",
+  "hostTypes": "v0.2.1",
   "cached": false,
   "scripts": [
     {
@@ -108,7 +108,7 @@ Windmill の worker だけで、名前で届きます。
 # docker-compose.yml (capture-scheduler)
 services:
   ts-compile:
-    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.0
+    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.4
     environment:
       - PORT=8080
       - HOST=0.0.0.0
