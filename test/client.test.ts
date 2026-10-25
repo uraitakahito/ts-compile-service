@@ -69,7 +69,7 @@ describe("生成した client と生成した server は、同じ model を話�
     expect(out).toMatchObject({ ok: true, typescript: "6.0.3", hostTypes: "v0.2.0" });
   });
 
-  it("空の目録は Compile が 200 で、scripts は空 (ValidationException にならない)", async () => {
+  it("スクリプトが空でも Compile は 200 で、scripts は空 (ValidationException にならない)", async () => {
     const out = await client.send(new CompileCommand({ scripts: [] }));
     expect(out).toMatchObject({ typescript: "6.0.3", hostTypes: "v0.2.0", scripts: [] });
   });

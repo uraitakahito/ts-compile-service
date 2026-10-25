@@ -221,7 +221,7 @@
             },
             "Script": {
                 "type": "object",
-                "description": "目録の 1 本。台帳が送る形そのもの。",
+                "description": "スクリプト 1 本。台帳が送る形そのもの。",
                 "properties": {
                     "id": {
                         "type": "string",

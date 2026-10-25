@@ -59,7 +59,7 @@ const toDiagnostic = (d: ts.Diagnostic): Diagnostic => {
  * typescript から読む。全部を 1 つの program に入れるのは、スクリプト同士が global を共有する
  * (どれも module ではない) ことを型検査にも見せるため —— 同じ名前を 2 本が top-level に置けば赤くなる。
  *
- * 1 本でも赤ければ diagnostics だけを返す。途中まで通った目録は「通った」と区別が付かない。
+ * 1 本でも赤ければ diagnostics だけを返す。途中まで通った並びは「通った」と区別が付かない。
  */
 export const compile = (scripts: readonly { id: string; source: string }[]): Compiled => {
   const files = new Map<string, string>(scripts.map((s) => [`/src/${s.id}.ts`, s.source]));

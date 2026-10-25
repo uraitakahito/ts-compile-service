@@ -22,7 +22,7 @@ Docker なら `container` を `docker` に読み替えるだけで、引数は�
 
 ## 1 本変換する
 
-`POST /compile` は capture-ledger が目録に持つ形そのもの、つまり id・version・phase・TypeScript の
+`POST /compile` は capture-ledger が持つ形そのもの、つまり id・version・phase・TypeScript の
 source・その source の sha256 を受け取ります。hash は飾りではなく、source と合わないスクリプトは
 断られます（[API](/api/) を参照）。
 
@@ -97,7 +97,7 @@ env は 3 つ。起動時に 1 回読みます。
 | ---------------------- | --------- | ----------------------------------------------------------- |
 | `PORT`                 | `8080`    | 待ち受ける port                                             |
 | `HOST`                 | `0.0.0.0` | 全 interface に bind する。他のコンテナから呼ばれる物なので |
-| `TS_COMPILE_CACHE_MAX` | `256`     | 覚えておく目録の数（LRU。鍵は hash の並び）                 |
+| `TS_COMPILE_CACHE_MAX` | `256`     | 覚えておく答えの数（LRU。鍵は hash の並び）                 |
 
 ## compose の中で
 

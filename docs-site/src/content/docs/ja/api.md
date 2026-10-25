@@ -9,10 +9,10 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 
 ## 口
 
-| 口              | status                | すること                                                            |
-| --------------- | --------------------- | ------------------------------------------------------------------- |
-| `POST /compile` | 200 · 400 · 409 · 422 | 目録のスクリプトを 1 つの program として型検査し、JavaScript を返す |
-| `GET /healthz`  | 200 · 400             | 起きているか。どの compiler と受け皿の型で                          |
+| 口              | status                | すること                                                              |
+| --------------- | --------------------- | --------------------------------------------------------------------- |
+| `POST /compile` | 200 · 400 · 409 · 422 | その段のスクリプトを 1 つの program として型検査し、JavaScript を返す |
+| `GET /healthz`  | 200 · 400             | 起きているか。どの compiler と受け皿の型で                            |
 
 エラーはどれも、種類を `x-amzn-errortype` の response header（`ValidationException`・
 `SourceHashMismatch`・`CompileFailed`）と JSON の本文の両方で伝えます。`/healthz` に `400` が
@@ -38,15 +38,15 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 }
 ```
 
-| 欄        | 制約                            | 備考                                                                                  |
-| --------- | ------------------------------- | ------------------------------------------------------------------------------------- |
-| `scripts` | 0〜100 本                       | その段の目録を丸ごと、1 つの request で。空も通る: 何も変換せず、`scripts` は空で返る |
-| `id`      | `^[a-z][a-z0-9-]*$`、1〜64 文字 | program の中の file 名になる（`/src/<id>.ts`）                                        |
-| `version` | 整数                            | 触らずに返す                                                                          |
-| `phase`   | `preload` か `behavior`         | 触らずに返す                                                                          |
-| `source`  | 文字列                          | TypeScript                                                                            |
-| `sha256`  | `^[0-9a-f]{64}$`                | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                 |
-| `options` | 任意の JSON document。省略可    | 触らずに返す                                                                          |
+| 欄        | 制約                            | 備考                                                                                        |
+| --------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `scripts` | 0〜100 本                       | その段のスクリプトを丸ごと、1 つの request で。空も通る: 何も変換せず、`scripts` は空で返る |
+| `id`      | `^[a-z][a-z0-9-]*$`、1〜64 文字 | program の中の file 名になる（`/src/<id>.ts`）                                              |
+| `version` | 整数                            | 触らずに返す                                                                                |
+| `phase`   | `preload` か `behavior`         | 触らずに返す                                                                                |
+| `source`  | 文字列                          | TypeScript                                                                                  |
+| `sha256`  | `^[0-9a-f]{64}$`                | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                       |
+| `options` | 任意の JSON document。省略可    | 触らずに返す                                                                                |
 
 スクリプトは全部を**1 つの program**として compile します。ページの中では global を共有する（どれも
 module ではない）ので、2 本が同じ top-level の名前を宣言すればここで型エラーになります。向こうで
@@ -67,7 +67,7 @@ capture-scripts の tag。`/healthz` が名乗るのと同じ値）で、報告�
 済む。`cached` は、同じ source の hash の並びを最近 compile していて、JavaScript が memory から出たとき `true`。
 使い回すのは JavaScript だけで、同じ source を別の名前・別の `phase`・別の `options` で送れば、それが返る。
 
-空の目録にも同じ形で答え、`scripts` は `[]`。何も変換しないが `typescript` と `hostTypes` は付くので、
+スクリプトが空でも同じ形で答え、`scripts` は `[]`。何も変換しないが `typescript` と `hostTypes` は付くので、
 何も走らせない段でも「何で変換するはずだったか」を報告に載せられる。
 
 ### 400 ValidationException
@@ -97,7 +97,7 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 ### 422 CompileFailed
 
 1 本でも型が通らなかった。**どのスクリプトの JavaScript も返しません。** 通っていた物も含めて。途中まで
-変換された目録は、受け取る側から見ると完全な物と区別が付かないからです。
+変換された並びは、受け取る側から見ると完全な物と区別が付かないからです。
 
 ```json
 {

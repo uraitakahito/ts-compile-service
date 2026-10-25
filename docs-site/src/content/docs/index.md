@@ -4,7 +4,7 @@ description: A resident service that type-checks TypeScript and emits JavaScript
 ---
 
 ts-compile-service is a small HTTP service with one job: take the TypeScript that
-[capture-ledger](https://uraitakahito.github.io/capture-ledger/) keeps in its catalogue,
+[capture-ledger](https://uraitakahito.github.io/capture-ledger/) keeps,
 type-check it, and hand back the JavaScript that
 [BrowserHive](https://github.com/uraitakahito/browserhive) evaluates inside the captured page.
 **If a single script fails to type-check, nothing comes back**, and the crawl level that asked
@@ -15,9 +15,9 @@ is failed.
 The scripts themselves live in [capture-scripts](https://github.com/uraitakahito/capture-scripts)
 and are written against a typed host object, `__bh`. Four repositories touch them, in this order:
 
-1. **capture-ledger** imports the `.ts` files into its catalogue and stamps each one with the
+1. **capture-ledger** imports the `.ts` files and stamps each one with the
    sha256 of its TypeScript bytes.
-2. **capture-scheduler**'s Windmill flow sends the catalogue here once per crawl level
+2. **capture-scheduler**'s Windmill flow sends the scripts here once per crawl level
    (`POST /compile`).
 3. **ts-compile-service** verifies the hashes, type-checks everything as one program, emits
    JavaScript and hashes that.
