@@ -4,7 +4,7 @@ description: TypeScript を型検査して JavaScript にする、クローラ�
 ---
 
 ts-compile-service は仕事が 1 つだけの小さな HTTP サービスです。
-[capture-ledger](https://uraitakahito.github.io/capture-ledger/ja/) が目録に持つ TypeScript を型検査し、
+[capture-ledger](https://uraitakahito.github.io/capture-ledger/ja/) が持つ TypeScript のスクリプトを型検査し、
 [BrowserHive](https://github.com/uraitakahito/browserhive) が取り込んだページの中で評価する
 JavaScript を返します。**1 本でも型が通らなければ何も返さず**、頼んできたクロールの段は失敗になります。
 
@@ -13,8 +13,8 @@ JavaScript を返します。**1 本でも型が通らなければ何も返さ�
 スクリプトそのものは [capture-scripts](https://github.com/uraitakahito/capture-scripts) に在り、
 型の付いた受け皿 `__bh` に向けて書かれています。触るのは 4 つの repo で、順番はこうです。
 
-1. **capture-ledger** が `.ts` を目録に取り込み、1 本ずつ TypeScript のバイト列の sha256 を打つ。
-2. **capture-scheduler** の Windmill の flow が、クロールの段ごとに目録をここへ送る（`POST /compile`）。
+1. **capture-ledger** が `.ts` を取り込み、1 本ずつ TypeScript のバイト列の sha256 を打つ。
+2. **capture-scheduler** の Windmill の flow が、クロールの段ごとにスクリプトをここへ送る（`POST /compile`）。
 3. **ts-compile-service** が hash を照合し、全部を 1 つの program として型検査し、JavaScript を emit して
    その hash を打つ。
 4. **BrowserHive** が新しい hash 付きの JavaScript を受け取り、照合してから、ページの中で評価する。

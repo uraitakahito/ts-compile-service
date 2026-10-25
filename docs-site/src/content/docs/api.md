@@ -10,10 +10,10 @@ not the other fails the pull request.
 
 ## Endpoints
 
-| Endpoint        | Status codes          | What it does                                                               |
-| --------------- | --------------------- | -------------------------------------------------------------------------- |
-| `POST /compile` | 200 · 400 · 409 · 422 | Type-check a catalogue of scripts as one program and return the JavaScript |
-| `GET /healthz`  | 200 · 400             | Is it up, and with which compiler and host types                           |
+| Endpoint        | Status codes          | What it does                                                          |
+| --------------- | --------------------- | --------------------------------------------------------------------- |
+| `POST /compile` | 200 · 400 · 409 · 422 | Type-check a level's scripts as one program and return the JavaScript |
+| `GET /healthz`  | 200 · 400             | Is it up, and with which compiler and host types                      |
 
 Every error carries its type in the `x-amzn-errortype` response header (`ValidationException`,
 `SourceHashMismatch`, `CompileFailed`) as well as in a JSON body. `400` is listed for `/healthz`
@@ -39,15 +39,15 @@ never actually triggers it.
 }
 ```
 
-| Field     | Constraint                         | Notes                                                                                                                 |
-| --------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `scripts` | 0 to 100 items                     | The whole catalogue for the level, in one request. Empty is valid: nothing is compiled and `scripts` comes back empty |
-| `id`      | `^[a-z][a-z0-9-]*$`, 1 to 64 chars | Becomes the file name inside the program (`/src/<id>.ts`)                                                             |
-| `version` | integer                            | Passed through untouched                                                                                              |
-| `phase`   | `preload` or `behavior`            | Passed through untouched                                                                                              |
-| `source`  | string                             | The TypeScript                                                                                                        |
-| `sha256`  | `^[0-9a-f]{64}$`                   | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it                                                       |
-| `options` | any JSON document, optional        | Passed through untouched                                                                                              |
+| Field     | Constraint                         | Notes                                                                                                       |
+| --------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `scripts` | 0 to 100 items                     | All the level's scripts, in one request. Empty is valid: nothing is compiled and `scripts` comes back empty |
+| `id`      | `^[a-z][a-z0-9-]*$`, 1 to 64 chars | Becomes the file name inside the program (`/src/<id>.ts`)                                                   |
+| `version` | integer                            | Passed through untouched                                                                                    |
+| `phase`   | `preload` or `behavior`            | Passed through untouched                                                                                    |
+| `source`  | string                             | The TypeScript                                                                                              |
+| `sha256`  | `^[0-9a-f]{64}$`                   | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it                                             |
+| `options` | any JSON document, optional        | Passed through untouched                                                                                    |
 
 All scripts are compiled **as one program**. They share the global scope in the page (none of
 them is a module), so two scripts declaring the same top-level name is a type error here, exactly
@@ -69,7 +69,7 @@ record both without asking the service again. `cached` is `true` when the same s
 hashes was compiled recently and the JavaScript came from memory. Only the JavaScript is reused:
 the same source sent under another name, another `phase` or another `options` gets those back.
 
-An empty catalogue answers the same way, with `scripts: []`. Nothing is compiled, but
+An empty list answers the same way, with `scripts: []`. Nothing is compiled, but
 `typescript` and `hostTypes` are still there, so a level that runs nothing can report what would
 have compiled it.
 
@@ -101,7 +101,7 @@ check exists at all, when TCP already protects the bytes: see
 ### 422 CompileFailed
 
 At least one script did not type-check. **No JavaScript comes back for any script**, including
-the ones that were fine. A partially converted catalogue would be indistinguishable from a
+the ones that were fine. A partially converted list would be indistinguishable from a
 complete one to the consumer.
 
 ```json

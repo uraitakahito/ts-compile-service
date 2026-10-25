@@ -24,7 +24,7 @@ On Docker, replace `container` with `docker`; the arguments are the same.
 
 ## Compile one script
 
-`POST /compile` takes the catalogue as capture-ledger stores it: id, version, phase, the
+`POST /compile` takes the scripts as capture-ledger stores them: id, version, phase, the
 TypeScript source, and the sha256 of that source. The hash is not decoration. A script whose hash
 does not match its source is refused (see [API](/api/)).
 

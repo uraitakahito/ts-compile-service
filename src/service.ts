@@ -51,7 +51,7 @@ export const createService = ({
       }
     }
 
-    // 鍵は TS の sha256 の並び。同じ目録は段ごとに来るので、2 段目からはここで返る
+    // 鍵は TS の sha256 の並び。同じスクリプトは段ごとに来るので、2 段目からはここで返る
     const key = scripts.map((s) => s.sha256).join("+");
 
     // **使い回すのは JS だけ。** id・版・phase・options は、いつもいまの要求から付ける。出てくる JS は

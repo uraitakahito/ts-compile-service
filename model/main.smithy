@@ -94,7 +94,7 @@ structure SourceHashMismatch {
     id: ScriptId
 }
 
-/// 目録の 1 本。台帳が送る形そのもの。
+/// スクリプト 1 本。台帳が送る形そのもの。
 structure Script {
     @required
     id: ScriptId
