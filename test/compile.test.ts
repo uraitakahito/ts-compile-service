@@ -45,6 +45,18 @@ describe("compile", () => {
     );
   });
 
+  it("受け皿の vars・secrets を読む TS が通り、undefined を見ない読み方は型で捕まる", () => {
+    // capture-scripts v0.6.0 の host.d.ts から。古い写し (opts・remainingMs・report だけ) だと
+    // vars が無い (TS2339) ので、この試験は写しがどの版かも言う
+    const out = js("with-values.ts");
+    expect(out).toContain("__bh.vars.query");
+    expect(out).toContain("__bh.secrets.api_token");
+    const [unguarded] = diagnosticsOf([
+      { id: "unguarded", source: "const n: number = globalThis.__bh.vars.query.length;\n" },
+    ]);
+    expect(unguarded?.code).toBe("TS18048");
+  });
+
   it("型が通らなければ 1 本も返さず、行と列つきの diagnostics になる", () => {
     const diagnostics = diagnosticsOf([
       { id: "good", source: fixture("good.ts") },
