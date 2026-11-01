@@ -3,3 +3,16 @@
 minimumReleaseAgeExclude:
   - "@smithy/core@3.35.0"
   - "@smithy/types@4.19.0"
+
+# audit から外す勧告。外すのは、上流が修正版を受け取れず、override でも越えられないものだけ。
+# 1 件ごとに、なぜ越えられないかと、外す条件を書く。
+auditConfig:
+  ignoreGhsas:
+    # minimatch: globparts の増幅による DoS。修正は 11.0.1 (2026-10-27) からで、10 系には無い。
+    # 要求元は @eslint/config-array 0.23.5 (^10.2.4。eslint 10.14 の下) と
+    # @typescript-eslint/typescript-estree 8.72 (^10.2.2)。2026-11-01 の時点で、どちらの最新版も 10 系を要求する。
+    # 11 は名前付きの書き出し makeRe をやめたので、override で 11 にすると eslint の周りが読み込みで
+    # 落ちることがある (browserhive で実測)。どちらも devDependencies の lint の道具で、runtime image
+    # (Containerfile は dist と prod の依存だけ) には入らない。読むパターンも eslint の設定と lint の対象だけ。
+    # 外す条件: これらの親が ^11 を要求する版を出したとき (そのとき update で直る)。
+    - GHSA-g3hv-75wg-m249
