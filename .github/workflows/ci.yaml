@@ -62,7 +62,7 @@ jobs:
           for i in $(seq 1 20); do curl -fs http://127.0.0.1:8080/healthz && break; sleep 1; done
           curl -fs http://127.0.0.1:8080/healthz | grep -q '"hostTypes"'
           # 型が通らない 1 本 → 422 (受け皿の型が image に入っていなければ TS7017 ではなく別の答えになる)
-          src='const n: number = "x"; globalThis.__bh.report("x", { n });'
+          src='const n: number = "x"; globalThis.__bh.report({ n });'
           sha=$(printf '%s' "$src" | sha256sum | cut -d' ' -f1)
           code=$(curl -s -o /tmp/body -w '%{http_code}' -H 'content-type: application/json' \
             -d "{\"scripts\":[{\"id\":\"x\",\"version\":1,\"phase\":\"behavior\",\"source\":$(printf '%s' "$src" | jq -Rs .),\"sha256\":\"$sha\",\"options\":{}}]}" \

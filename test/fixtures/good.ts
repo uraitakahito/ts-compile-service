@@ -7,5 +7,5 @@
   }
   // line comment
   const r: Report = { reachedBottom: maxSteps > 0 };
-  globalThis.__bh.report("autoscroll", r satisfies Report);
+  globalThis.__bh.report(r satisfies Report);
 })();

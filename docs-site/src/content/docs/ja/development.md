@@ -49,8 +49,18 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 持ちます。CI の `host-types:check` はその tag の file を GitHub から取り、写しが 1 バイトでも違えば
 落とします。
 
-新しい capture-scripts に上げるなら: pin を変え、file を写し、検査を走らせる。写しを手で直しては
-いけません。出どころは向こうの repo です。
+新しい capture-scripts に上げる手順です。写しを手で直してはいけません。出どころは向こうの repo です。
+
+1. `capture-scripts.pin` を新しい tag にし、その tag の `types/host.d.ts` を 1 バイトも替えずに写す。
+   `pnpm run host-types:check` が tag の raw と比べる。
+2. `pnpm test`。型が変わったなら、`test/fixtures/` の TS と `test/compile.test.ts` の期待（固定した
+   sha256・診断の並び）を新しい型に合わせ、新しい型を使う fixture と試験を足す。古い写しで赤くなる
+   試験にすると、写しがどの版かも試験が言う。
+3. スクリプトが受け皿を呼ぶ形が変わったなら、`.github/workflows/ci.yaml` の image の job が送る
+   スクリプトも直す。
+4. docs の例を、出す版にそろえる。`hostTypes` の値（[API](/api/) と[クイックスタート](/quickstart/)）、
+   image の tag（クイックスタートの `container run` と compose の例。これから打つ tag）、受け皿を
+   呼ぶ例（クイックスタートの `src=`）。
 
 ## 試験
 

@@ -9,10 +9,10 @@ image は GitHub Container Registry に `linux/arm64` で公開されていて�
 
 ```sh
 container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
-  ghcr.io/uraitakahito/ts-compile-service:v0.2.8
+  ghcr.io/uraitakahito/ts-compile-service:v0.3.0
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.6.1"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.7.0"}
 ```
 
 `typescript` は image に焼き込まれた compiler の版、`hostTypes` は image が持つ `types/host.d.ts` が
@@ -27,7 +27,7 @@ source・その source の sha256 を受け取ります。hash は飾りでは�
 断られます（[API](/api/) を参照）。
 
 ```sh
-src='globalThis.__bh.report("hello", { remaining: __bh.remainingMs });'
+src='globalThis.__bh.report({ remaining: __bh.remainingMs });'
 sha=$(printf '%s' "$src" | shasum -a 256 | cut -d' ' -f1)
 
 curl -s -H 'content-type: application/json' http://127.0.0.1:8080/compile -d "$(cat <<EOF
@@ -43,14 +43,14 @@ EOF
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.6.1",
+  "hostTypes": "v0.7.0",
   "cached": false,
   "scripts": [
     {
       "id": "hello",
       "version": 1,
       "phase": "behavior",
-      "source": "\"use strict\";\nglobalThis.__bh.report(\"hello\", { remaining: __bh.remainingMs });\n",
+      "source": "\"use strict\";\nglobalThis.__bh.report({ remaining: __bh.remainingMs });\n",
       "sha256": "…",
       "options": {}
     }
@@ -64,7 +64,7 @@ EOF
 ## 型が通らないとき
 
 ```sh
-src='const n: number = "x"; globalThis.__bh.report("x", { n });'
+src='const n: number = "x"; globalThis.__bh.report({ n });'
 ```
 
 同じように送ると **422** で、診断だけが返り、JavaScript は 1 本も返りません。同じ request の中の、
@@ -108,7 +108,7 @@ Windmill の worker だけで、名前で届きます。
 # docker-compose.yml (capture-scheduler)
 services:
   ts-compile:
-    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.8
+    image: ghcr.io/uraitakahito/ts-compile-service:v0.3.0
     environment:
       - PORT=8080
       - HOST=0.0.0.0

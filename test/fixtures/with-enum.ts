@@ -3,5 +3,5 @@
   enum E {
     A,
   }
-  globalThis.__bh.report("with-enum", { e: E.A });
+  globalThis.__bh.report({ e: E.A });
 })();
