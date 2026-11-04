@@ -10,10 +10,10 @@ configuration:
 
 ```sh
 container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
-  ghcr.io/uraitakahito/ts-compile-service:v0.2.8
+  ghcr.io/uraitakahito/ts-compile-service:v0.3.0
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.6.1"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.7.0"}
 ```
 
 `typescript` is the compiler version baked into the image. `hostTypes` is the tag of
@@ -29,7 +29,7 @@ TypeScript source, and the sha256 of that source. The hash is not decoration. A 
 does not match its source is refused (see [API](/api/)).
 
 ```sh
-src='globalThis.__bh.report("hello", { remaining: __bh.remainingMs });'
+src='globalThis.__bh.report({ remaining: __bh.remainingMs });'
 sha=$(printf '%s' "$src" | shasum -a 256 | cut -d' ' -f1)
 
 curl -s -H 'content-type: application/json' http://127.0.0.1:8080/compile -d "$(cat <<EOF
@@ -45,14 +45,14 @@ hash, plus which compiler produced it:
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.6.1",
+  "hostTypes": "v0.7.0",
   "cached": false,
   "scripts": [
     {
       "id": "hello",
       "version": 1,
       "phase": "behavior",
-      "source": "\"use strict\";\nglobalThis.__bh.report(\"hello\", { remaining: __bh.remainingMs });\n",
+      "source": "\"use strict\";\nglobalThis.__bh.report({ remaining: __bh.remainingMs });\n",
       "sha256": "…",
       "options": {}
     }
@@ -67,7 +67,7 @@ names, `phase` and `options` in the answer are always the ones you sent.
 ## When it does not type-check
 
 ```sh
-src='const n: number = "x"; globalThis.__bh.report("x", { n });'
+src='const n: number = "x"; globalThis.__bh.report({ n });'
 ```
 
 Sent the same way, this gets a **422** with the diagnostics and no JavaScript at all, not even for
@@ -111,7 +111,7 @@ only caller is the Windmill worker, which reaches it by name.
 # docker-compose.yml (capture-scheduler)
 services:
   ts-compile:
-    image: ghcr.io/uraitakahito/ts-compile-service:v0.2.8
+    image: ghcr.io/uraitakahito/ts-compile-service:v0.3.0
     environment:
       - PORT=8080
       - HOST=0.0.0.0

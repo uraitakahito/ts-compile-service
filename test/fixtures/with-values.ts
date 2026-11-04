@@ -2,5 +2,5 @@
 (async (): Promise<void> => {
   const query = String(globalThis.__bh.vars.query ?? "既定の語");
   const token = globalThis.__bh.secrets.api_token;
-  globalThis.__bh.report("with-values", { query, hasToken: token !== undefined });
+  globalThis.__bh.report({ query, hasToken: token !== undefined });
 })();

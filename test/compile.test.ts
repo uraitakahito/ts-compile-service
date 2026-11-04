@@ -41,7 +41,7 @@ describe("compile", () => {
     // typescript の版か compilerOptions を変えると、ここが最初に赤くなる。それが狙い ——
     // WACZ に残る JS の hash が黙って変わらないように
     expect(sha256(js("good.ts"))).toBe(
-      "f9bf89ea9a05683a948b30141eb6327f45439a41d795ec86bd2b68e6496d1708",
+      "2d6bcc4cc113656e2cd977b758c0fc60c64844f5af24111bd88173c0998cd5a1",
     );
   });
 
@@ -55,6 +55,21 @@ describe("compile", () => {
       { id: "unguarded", source: "const n: number = globalThis.__bh.vars.query.length;\n" },
     ]);
     expect(unguarded?.code).toBe("TS18048");
+  });
+
+  it("受け皿の log を使う TS が通り、id を渡す古い report は型で捕まる", () => {
+    // capture-scripts v0.7.0 の host.d.ts から。古い写し (report(id, data) で log が無い) だと
+    // log が TS2339 になり、2 引数の report が通るので、この試験は写しがどの版かも言う
+    const out = js("with-log.ts");
+    for (const level of ["debug", "info", "warn", "error"]) {
+      expect(out).toContain(`globalThis.__bh.log.${level}(`);
+    }
+    const codesOf = (source: string): string[] =>
+      diagnosticsOf([{ id: "old", source }]).map((d) => d.code);
+    // 引数が 1 つ多い
+    expect(codesOf('globalThis.__bh.report("old", { n: 1 });\n')).toEqual(["TS2554"]);
+    // id だけの取り残し。data が unknown なら通ってしまう (object にした理由)
+    expect(codesOf('globalThis.__bh.report("old");\n')).toEqual(["TS2345"]);
   });
 
   it("型が通らなければ 1 本も返さず、行と列つきの diagnostics になる", () => {

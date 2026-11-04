@@ -54,8 +54,21 @@ Scripts are compiled against `__bh`, the object BrowserHive injects into the pag
 came from. CI's `host-types:check` fetches that tag's file from GitHub and fails if the copy
 differs by a byte.
 
-To move to a newer capture-scripts: change the pin, copy the file, run the check. Never edit the
-copy. The source of truth is the other repository.
+To move to a newer capture-scripts, follow these steps. Never edit the copy. The source of truth is
+the other repository.
+
+1. Point `capture-scripts.pin` at the new tag and copy that tag's `types/host.d.ts` byte for byte.
+   `pnpm run host-types:check` compares it with the tag's raw file.
+2. Run `pnpm test`. If the types changed, bring the TypeScript in `test/fixtures/` and the
+   expectations in `test/compile.test.ts` (the pinned sha256, the exact list of diagnostics) up to
+   the new types, and add a fixture and a test that use them. Make the test one that goes red on the
+   old copy, so that it also says which version the copy is.
+3. If the way scripts call the host changed, also fix the script that the image job in
+   `.github/workflows/ci.yaml` sends.
+4. Bring the examples in the docs to the version you are releasing: the `hostTypes` value (on
+   [API](/api/) and [Quickstart](/quickstart/)), the image tag (the `container run` and compose
+   examples on Quickstart; the tag you are about to cut), and the examples that call the host (the
+   `src=` lines on Quickstart).
 
 ## Tests
 
