@@ -14,20 +14,20 @@
 #   builder  全部の依存を入れて tsc
 #   runtime  node:alpine に node_modules と dist を写す
 
-ARG NODE_VERSION=24.15.0
+ARG NODE_VERSION=26.13.0
 
 # ---------- deps ----------
 FROM node:${NODE_VERSION}-alpine AS deps
 WORKDIR /deps
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
-RUN corepack enable && corepack prepare --activate \
+RUN npm i -g corepack@0.35.0 && corepack enable && corepack prepare --activate \
   && pnpm install --prod --frozen-lockfile --node-linker=hoisted
 
 # ---------- builder ----------
 FROM node:${NODE_VERSION}-alpine AS builder
 WORKDIR /app
 COPY pnpm-workspace.yaml pnpm-lock.yaml package.json tsconfig.base.json tsconfig.json tsconfig.build.json ./
-RUN corepack enable && corepack prepare --activate && pnpm install --frozen-lockfile
+RUN npm i -g corepack@0.35.0 && corepack enable && corepack prepare --activate && pnpm install --frozen-lockfile
 COPY src/ ./src/
 COPY generated/ ./generated/
 RUN pnpm run build
