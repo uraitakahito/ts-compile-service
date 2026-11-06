@@ -50,7 +50,8 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 
 スクリプトは全部を**1 つの program**として compile します。ページの中では global を共有する（どれも
 module ではない）ので、2 本が同じ top-level の名前を宣言すればここで型エラーになります。向こうで
-runtime の衝突になるのと同じです。
+runtime の衝突になるのと同じです。[Zod を読む](#zod-を読む)スクリプトだけは例外で、compiler には module に、
+ページでは block の中に見えるので、ぶつかりません。
 
 ### 200
 
@@ -59,7 +60,7 @@ runtime の衝突になるのと同じです。
 いつも要求の物です。
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.7.0", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.10.0", "cached": false, "scripts": ["…"] }
 ```
 
 `typescript` は出力を作った compiler の版。`hostTypes` は何に向けて compile したか（受け皿の型の
@@ -96,12 +97,12 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 
 ### 422 CompileFailed
 
-1 本でも型が通らなかった。**どのスクリプトの JavaScript も返しません。** 通っていた物も含めて。途中まで
+1 本でも型か決まりが通らなかった。**どのスクリプトの JavaScript も返しません。** 通っていた物も含めて。途中まで
 変換された並びは、受け取る側から見ると完全な物と区別が付かないからです。
 
 ```json
 {
-  "message": "2 件の型エラー",
+  "message": "2 件の誤り",
   "typescript": "6.0.3",
   "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }]
 }
@@ -109,14 +110,56 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 
 位置の無い診断では `file`・`line`・`col` が欠けます。
 
+`code` は TypeScript の誤りが `TS` で始まり、この service の決まりが `BH` で始まります。
+
+| `code`   | 意味                                                                                                                             |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `BH0003` | zod の読み方が[受ける 2 形](#zod-を読む)でない。先頭の文でない。`import("zod")`。`// @ts-nocheck` でも効く                       |
+| `BH0004` | `phase` が `preload` のスクリプトに `import` がある。全部のフレームで遷移のたびに走り、失敗を書く受け皿も無い                    |
+| `BH0006` | classic script として読めない。`export` と、`import` のあるスクリプトの top-level の `await`。ページでは構文エラーで何も走らない |
+
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.7.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.10.0" }
 ```
 
 `hostTypes` は、サービスが compile の相手にする `types/host.d.ts` が capture-scripts のどの tag の物か
 （`capture-scripts.pin` の中身）。その tag の capture-scripts 自身の CI で型が通るスクリプトは、ここでも通ります。
+
+## Zod を読む
+
+スクリプトの先頭の文に、次のどちらかを書けます。受けるのはこの 2 形だけです。ほかの package と `zod/locales` は
+`TS2307` になります。
+
+```ts
+import { z } from "zod";
+import * as z from "zod/mini";
+```
+
+型は本物の Zod から付きます。版は capture-scripts と同じで、`host-types:check` が見ています。JavaScript には
+`import` を書けないので（BrowserHive は classic script として評価します）、emit の後に次の形へ組み上げます。
+
+```js
+"use strict";
+{
+  // zod 4.6.7 (MIT)
+  const { z } = (() => {
+    /* 使う名前だけを束ねた Zod */
+  })();
+  // スクリプトの本体
+}
+```
+
+- **使う名前だけを束ねます。** 型の位置を除いて `z.<名前>` を集めます。目安は 85 KB です（`zod/mini` は 15 KB）。
+  `z[key]` のように名前を読めない使い方があれば全部を束ねます（385 KB）
+- **`jitless` で束ねます。** 立てないと Zod は速い検査を `new Function` で作ろうとし、`script-src` が eval を
+  禁じるページでは投げるうえ、相手のサイトへ違反の報告が飛びます
+- **block で包みます。** 関数で包むとスクリプトの最後の式が完了値でなくなり、BrowserHive が終わりを待てません
+- **`import` の無いスクリプトは今までと同じバイト列です。** Zod の版か esbuild の版を上げると、Zod を読むスクリプトの
+  JavaScript は変わります
+
+`import` の前のコメントは JavaScript に残りません。
 
 ## compiler の設定
 
@@ -126,12 +169,15 @@ option は capture-scripts の `tsconfig.json` と同じにしてあります。
 | option               | 値                                                                                                        |
 | -------------------- | --------------------------------------------------------------------------------------------------------- |
 | `target` / `module`  | ES2023 / ESNext                                                                                           |
+| `moduleResolution`   | Bundler。スクリプトから解決するのは `zod` と `zod/mini` だけ                                              |
+| `skipLibCheck`       | on: Zod の d.ts を検査しない（3 本で 556 ms が 117 ms に）                                                |
 | `lib`                | ES2023 と DOM                                                                                             |
 | `strict`             | on                                                                                                        |
 | `erasableSyntaxOnly` | on: enum・namespace・parameter property は使えない。JavaScript は TypeScript から型を引いただけの物になる |
 | `removeComments`     | off: コメントは archive まで残る                                                                          |
 
-emit した JavaScript は `"use strict";` で始まります。compiler が module でない file に必ず付ける物です。
+emit した JavaScript は `"use strict";` で始まります。compiler が module でない file に必ず付ける物で、
+[Zod を読む](#zod-を読む)スクリプトは組み上げのときに付けます。
 
 ## 出どころ
 

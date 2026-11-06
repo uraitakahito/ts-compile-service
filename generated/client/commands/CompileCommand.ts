@@ -71,7 +71,7 @@ export interface CompileCommandOutput extends CompileOutput, __MetadataBearer {}
  * @see {@link TsCompileClientResolvedConfig | config} for TsCompileClient's `config` shape.
  *
  * @throws {@link CompileFailed} (client fault)
- *  1 本でも型が通らなかった。1 本も返さない。
+ *  1 本でも型か決まりが通らなかった。1 本も返さない。
  *
  * @throws {@link SourceHashMismatch} (client fault)
  *  送られた sha256 が source と合わない。運ぶ途中で入れ替わった物は変換しない。

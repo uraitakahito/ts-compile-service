@@ -12,7 +12,7 @@ container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
   ghcr.io/uraitakahito/ts-compile-service:v0.3.0
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.7.0"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.10.0"}
 ```
 
 `typescript` は image に焼き込まれた compiler の版、`hostTypes` は image が持つ `types/host.d.ts` が
@@ -43,7 +43,7 @@ EOF
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.7.0",
+  "hostTypes": "v0.10.0",
   "cached": false,
   "scripts": [
     {
@@ -72,7 +72,7 @@ src='const n: number = "x"; globalThis.__bh.report({ n });'
 
 ```json
 {
-  "message": "1 件の型エラー",
+  "message": "1 件の誤り",
   "typescript": "6.0.3",
   "diagnostics": [
     {

@@ -69,7 +69,7 @@ operation GetHealth {
     }
 }
 
-/// 1 本でも型が通らなかった。1 本も返さない。
+/// 1 本でも型か決まりが通らなかった。1 本も返さない。
 @error("client")
 @httpError(422)
 structure CompileFailed {
@@ -141,7 +141,8 @@ structure Diagnostic {
 
     col: Integer
 
-    /// TS2322 のような code
+    /// TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・
+    /// BH0004（preload の import）・BH0006（classic script として読めない）
     @required
     code: String
 

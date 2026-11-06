@@ -13,7 +13,7 @@ container run -d --name ts-compile -p 127.0.0.1:8080:8080 \
   ghcr.io/uraitakahito/ts-compile-service:v0.3.0
 
 curl -s http://127.0.0.1:8080/healthz
-# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.7.0"}
+# {"ok":true,"typescript":"6.0.3","hostTypes":"v0.10.0"}
 ```
 
 `typescript` is the compiler version baked into the image. `hostTypes` is the tag of
@@ -45,7 +45,7 @@ hash, plus which compiler produced it:
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.7.0",
+  "hostTypes": "v0.10.0",
   "cached": false,
   "scripts": [
     {
@@ -75,7 +75,7 @@ other scripts in the same request that were fine:
 
 ```json
 {
-  "message": "1 件の型エラー",
+  "message": "1 件の誤り",
   "typescript": "6.0.3",
   "diagnostics": [
     {

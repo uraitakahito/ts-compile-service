@@ -4,6 +4,7 @@ import type { TsCompileService } from "../generated/ssdk/server/index.js";
 import type { BoundedCache } from "./cache.js";
 import type { Compiled } from "./compile.js";
 import { sha256 } from "./hash.js";
+import { preloadProblems } from "./zod-bundle.js";
 
 /** 操作の外から差す物。試験では compile を偽物にして「本体が呼ばれていない」を言う。 */
 export interface ServiceDeps {
@@ -28,7 +29,7 @@ const present = <T>(value: T | undefined, name: string): T => {
  *
  * 入力の形と制約 (required・length・pattern・enum) は SSDK が先に見て 400 にする。ここに来るのは
  * model どおりの入力だけで、ここが見るのは model に書けない 2 つ —— sha256 が source と合うか (409)、
- * 型が通るか (422)。
+ * 型と決まりが通るか (422)。
  */
 export const createService = ({
   compile,
@@ -49,6 +50,16 @@ export const createService = ({
       if (sha256(s.source) !== s.sha256) {
         throw new SourceHashMismatch({ message: `${s.id}: sha256 が台帳の約束と違う`, id: s.id });
       }
+    }
+
+    // phase は cache の鍵に無いので、cache の前で毎回見る (同じ TS を preload で頼み直すと当たる)
+    const misplaced = preloadProblems(scripts);
+    if (misplaced.length > 0) {
+      throw new CompileFailed({
+        message: `${String(misplaced.length)} 件の誤り`,
+        typescript,
+        diagnostics: misplaced,
+      });
     }
 
     // 鍵は TS の sha256 の並び。同じスクリプトは段ごとに来るので、2 段目からはここで返る
@@ -74,7 +85,7 @@ export const createService = ({
     const r = compile(scripts);
     if ("diagnostics" in r) {
       throw new CompileFailed({
-        message: `${String(r.diagnostics.length)} 件の型エラー`,
+        message: `${String(r.diagnostics.length)} 件の誤り`,
         typescript,
         diagnostics: r.diagnostics,
       });

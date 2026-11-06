@@ -69,6 +69,14 @@ jobs:
             http://127.0.0.1:8080/compile)
           cat /tmp/body; echo
           test "$code" = 422 && grep -q TS2322 /tmp/body && ! grep -q TS7017 /tmp/body
+          # Zod を読む 1 本 → 200。zod か esbuild が --prod の依存から落ちていれば、ここで落ちる
+          src='import { z } from "zod"; (async () => { globalThis.__bh.report(z.object({ q: z.string() }).parse({ q: "x" })); })();'
+          sha=$(printf '%s' "$src" | sha256sum | cut -d' ' -f1)
+          code=$(curl -s -o /tmp/zod -w '%{http_code}' -H 'content-type: application/json' \
+            -d "{\"scripts\":[{\"id\":\"z\",\"version\":1,\"phase\":\"behavior\",\"source\":$(printf '%s' "$src" | jq -Rs .),\"sha256\":\"$sha\",\"options\":{}}]}" \
+            http://127.0.0.1:8080/compile)
+          head -c 300 /tmp/zod; echo
+          test "$code" = 200 && grep -q '// zod ' /tmp/zod
           # スクリプトが空でも 200 で、何もしない。台帳の `scriptIds: []` (何も走らせない) がここで落ちないように
           code=$(curl -s -o /tmp/empty -w '%{http_code}' -H 'content-type: application/json' \
             -d '{"scripts":[]}' http://127.0.0.1:8080/compile)

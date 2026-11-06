@@ -62,6 +62,21 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
    image の tag（クイックスタートの `container run` と compose の例。これから打つ tag）、受け皿を
    呼ぶ例（クイックスタートの `src=`）。
 
+## Zod と esbuild
+
+スクリプトの `import` を `src/zod-bundle.ts` が束ねます（形は [API](/api/#zod-を読む)）。どちらも runtime の依存で、
+版を固定しています。上げると Zod を読むスクリプトの JavaScript が変わるので、手順があります。
+
+1. Zod は capture-scripts を先に上げて tag を打ち、`capture-scripts.pin` をその tag にする。
+   `host-types:check` が向こうの dev の依存と版を照らす
+2. `pnpm test`。`test/zod.test.ts` の固定した sha256 が赤くなる。それが狙いで、JavaScript が変わったことを知ってから
+   値を直す
+3. 大きさの窓の試験と、`node:vm` で `new Function` を数える試験が緑のままかを見る。Zod の JIT の入り方が変わると、
+   ここで分かる
+
+`allowBuilds` で esbuild の build script は走らせません（`pnpm-workspace.yaml`）。binary は `@esbuild/<platform>` から
+実行時に読みます。
+
 ## 試験
 
 `pnpm test` は vitest を走らせます。`test/compile.test.ts` は compiler の包みを fixture（通る物、型エラーの
@@ -69,6 +84,10 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 話します。compiler は回数を数える偽物に差してあるので、制約の違反が本体に届かないことを言えます。
 `test/service.test.ts` は操作を直に、自分の cache で呼び、cache に当たったときの答えを固定します。使い回すのは
 JavaScript だけで、名前・版・`phase`・`options` は要求の物です。
+
+`test/zod.test.ts` は組み上げた JavaScript を `node:vm` で走らせ、ブラウザなしで動きを見ます。`Function` を Proxy に
+替えて呼ばれた数を数え、完了値が Promise か、strict で走るかを見ます。本物の Chromium と CSP での確かめは
+capture-scheduler の e2e に在ります。
 
 `test/client.test.ts` が契約試験です。同じ server を、生成した client（設定は `endpoint` だけ）で叩きます。
 手で書いた service が model から外れれば、型付きの答えが赤になります。output の member が欠ける、
@@ -86,7 +105,8 @@ container run --rm -p 127.0.0.1:8080:8080 ts-compile-service:dev
 どの段にも入りません。
 
 CI は pull request ごとに image を建てて起こし、型エラーのあるスクリプトを送ります。期待するのは
-`TS2322` を含み `TS7017` を含まない 422。`TS7017` は受け皿の型の写しが無いときに出る物です。
+`TS2322` を含み `TS7017` を含まない 422。`TS7017` は受け皿の型の写しが無いときに出る物です。Zod を読むスクリプトも
+送り、200 を見ます。zod か esbuild が `--prod` の依存から落ちていれば、ここで落ちます。
 
 tag `vX.Y.Z` を push すると `.github/workflows/release.yaml` が走り、ARM の runner で `linux/arm64` を
 建てて `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z` に出します。`package.json` の `version` は版では
