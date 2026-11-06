@@ -1,9 +1,11 @@
 import { CompileFailed, SourceHashMismatch } from "../generated/ssdk/models/errors.js";
-import type { CompileOutput, Script } from "../generated/ssdk/models/models_0.js";
+import type { CompileOutput, Declaration, Script } from "../generated/ssdk/models/models_0.js";
 import type { TsCompileService } from "../generated/ssdk/server/index.js";
 import type { BoundedCache } from "./cache.js";
-import type { Compiled } from "./compile.js";
+import type { Compiled, Diagnostic } from "./compile.js";
 import { sha256 } from "./hash.js";
+import { missingOf } from "./params.js";
+import { readParams, type ReadResult } from "./vendor/read-params.js";
 import { preloadProblems } from "./zod-bundle.js";
 
 /** 操作の外から差す物。試験では compile を偽物にして「本体が呼ばれていない」を言う。 */
@@ -24,12 +26,19 @@ const present = <T>(value: T | undefined, name: string): T => {
   return value;
 };
 
+/** 答えに載せる宣言。読めなかった本は `unreadable` で言い、`params` は空。 */
+const declarationOf = (id: string, read: ReadResult): Declaration => ({
+  id,
+  params: read.params,
+  unreadable: read.problems.length > 0,
+});
+
 /**
  * Smithy が生成した server に差す、操作の中身。
  *
  * 入力の形と制約 (required・length・pattern・enum) は SSDK が先に見て 400 にする。ここに来るのは
- * model どおりの入力だけで、ここが見るのは model に書けない 2 つ —— sha256 が source と合うか (409)、
- * 型と決まりが通るか (422)。
+ * model どおりの入力だけで、ここが見るのは model に書けない 3 つ —— sha256 が source と合うか (409)、
+ * 型と決まりが通るか (422)、必須の変数が渡されているか (422・BH0001)。
  */
 export const createService = ({
   compile,
@@ -38,6 +47,7 @@ export const createService = ({
   hostTypes,
 }: ServiceDeps): TsCompileService<Record<string, never>> => ({
   Compile: async (input) => {
+    const variableNames = present(input.variableNames, "variableNames");
     const scripts = present(input.scripts, "scripts").map((s) => ({
       ...s,
       id: present(s.id, "id"),
@@ -52,15 +62,24 @@ export const createService = ({
       }
     }
 
+    // **宣言は cache に入れず、毎回 source から読む。** 読むのは数 ms で、当たりと外れで答えが食い違う道が無くなる。
+    // 渡した名前との照合も毎回。JS は source だけで決まるが、足りるかは要求ごとに違う。cache の中で見ると、
+    // 同じ TS を前のクロールが名前つきで通した後に、名前の無いクロールが素通りする
+    const declared = scripts.map((s) => ({ id: s.id, read: readParams(s.source) }));
+    const declarations = declared.map(({ id, read }) => declarationOf(id, read));
+    const missing = missingOf(declared, variableNames);
+    const failed = (diagnostics: readonly Diagnostic[]): CompileFailed =>
+      new CompileFailed({
+        message: `${String(diagnostics.length)} 件の誤り`,
+        typescript,
+        diagnostics: [...diagnostics],
+        declarations,
+        missingVariables: missing.names,
+      });
+
     // phase は cache の鍵に無いので、cache の前で毎回見る (同じ TS を preload で頼み直すと当たる)
     const misplaced = preloadProblems(scripts);
-    if (misplaced.length > 0) {
-      throw new CompileFailed({
-        message: `${String(misplaced.length)} 件の誤り`,
-        typescript,
-        diagnostics: misplaced,
-      });
-    }
+    if (misplaced.length > 0) throw failed([...misplaced, ...missing.diagnostics]);
 
     // 鍵は TS の sha256 の並び。同じスクリプトは段ごとに来るので、2 段目からはここで返る
     const key = scripts.map((s) => s.sha256).join("+");
@@ -72,6 +91,7 @@ export const createService = ({
       typescript,
       hostTypes,
       cached,
+      declarations,
       scripts: scripts.map((s, i): Script => {
         const source = present(js[i], `${s.id} の JS`);
         // source と sha256 だけ JS の物になる
@@ -80,18 +100,16 @@ export const createService = ({
     });
 
     const hit = cache.get(key);
-    if (hit !== undefined) return answer(hit, true);
+    if (hit !== undefined) {
+      if (missing.diagnostics.length > 0) throw failed(missing.diagnostics);
+      return answer(hit, true);
+    }
 
     const r = compile(scripts);
-    if ("diagnostics" in r) {
-      throw new CompileFailed({
-        message: `${String(r.diagnostics.length)} 件の誤り`,
-        typescript,
-        diagnostics: r.diagnostics,
-      });
-    }
+    if ("diagnostics" in r) throw failed([...r.diagnostics, ...missing.diagnostics]);
     const js = scripts.map((s) => present(r.outputs.get(`/src/${s.id}.js`), `emit の出力 ${s.id}`));
     cache.set(key, js);
+    if (missing.diagnostics.length > 0) throw failed(missing.diagnostics);
     return await Promise.resolve(answer(js, false));
   },
 

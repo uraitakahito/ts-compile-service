@@ -43,6 +43,9 @@ export interface CompileCommandOutput extends CompileOutput, __MetadataBearer {}
  *       options: "DOCUMENT_VALUE",
  *     },
  *   ],
+ *   variableNames: [ // ValueNameList // required
+ *     "STRING_VALUE",
+ *   ],
  * };
  * const command = new CompileCommand(input);
  * const response = await client.send(command);
@@ -60,6 +63,28 @@ export interface CompileCommandOutput extends CompileOutput, __MetadataBearer {}
  * //     },
  * //   ],
  * //   cached: true || false, // required
+ * //   declarations: [ // DeclarationList // required
+ * //     { // Declaration
+ * //       id: "STRING_VALUE", // required
+ * //       params: [ // DeclaredParamList // required
+ * //         { // DeclaredParam
+ * //           name: "STRING_VALUE", // required
+ * //           kind: "variable", // required
+ * //           required: true || false, // required
+ * //           summary: "STRING_VALUE",
+ * //           schema: { // ParamSchema
+ * //             type: "STRING_VALUE", // required
+ * //             minLength: Number("int"),
+ * //             maxLength: Number("int"),
+ * //             enum: [ // ParamEnum
+ * //               "STRING_VALUE",
+ * //             ],
+ * //           },
+ * //         },
+ * //       ],
+ * //       unreadable: true || false, // required
+ * //     },
+ * //   ],
  * // };
  *
  * ```

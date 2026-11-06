@@ -3,6 +3,7 @@ import ts from "typescript";
 import { BoundedCache } from "./cache.js";
 import type { Diagnostic } from "./compile.js";
 import { repoRoot } from "./paths.js";
+import { readParams } from "./vendor/read-params.js";
 import { ZOD_VERSION } from "./version.js";
 
 /**
@@ -97,9 +98,9 @@ export const importProblems = (id: string, source: ts.SourceFile): Diagnostic[] 
 };
 
 /**
- * `preload` の `import` の誤り (BH0004)。**cache の外で毎回呼ぶ。** cache の鍵に phase は無く、同じ TS を
- * `preload` で頼み直すと当たるので、cache の中で見ると通ってしまう。preload は全部のフレームで遷移のたびに
- * 走り、受け皿も無いので、Zod の失敗を書く先が無い。
+ * `preload` の `import` と `defineParams` の誤り (BH0004)。**cache の外で毎回呼ぶ。** cache の鍵に phase は無く、
+ * 同じ TS を `preload` で頼み直すと当たるので、cache の中で見ると通ってしまう。preload は全部のフレームで遷移の
+ * たびに走り、受け皿も無いので、Zod の失敗を書く先も、変数を読む先も無い。
  */
 export const preloadProblems = (
   scripts: readonly { id: string; phase?: string | undefined; source: string }[],
@@ -108,19 +109,37 @@ export const preloadProblems = (
     .filter((s) => s.phase === "preload")
     .flatMap((s) => {
       const source = ts.createSourceFile(`/src/${s.id}.ts`, s.source, ts.ScriptTarget.ES2023, true);
-      return source.statements.filter(isImport).map((statement): Diagnostic => ({
+      const imports = source.statements.filter(isImport).map((statement): Diagnostic => ({
         file: `${s.id}.ts`,
         ...positionOf(source, statement),
         code: "BH0004",
         message: "preload では import を使えない (全部のフレームで遷移のたびに走る)",
       }));
+      const { declares, at } = readParams(s.source);
+      return declares
+        ? [
+            ...imports,
+            {
+              file: `${s.id}.ts`,
+              ...at,
+              code: "BH0004",
+              message: "preload では defineParams を使えない (受け皿が無い)",
+            },
+          ]
+        : imports;
     });
 
 const isImportBinding = (node: ts.Node): boolean =>
   ts.isImportSpecifier(node) || ts.isNamespaceImport(node) || ts.isImportClause(node);
 
+/** `defineParams(…)` の呼び出しか。JS では `globalThis.__bh.vars` に置き換わるので、中の `z` は JS に残らない。 */
+export const isDefineParamsCall = (node: ts.Node): node is ts.CallExpression =>
+  ts.isCallExpression(node) &&
+  ts.isIdentifier(node.expression) &&
+  node.expression.text === "defineParams";
+
 /**
- * 型の位置を除いて `z.<名前>` を集める。名前を読めない使い方 (`z[key]`・`const { object } = z`) があれば
+ * 型の位置と `defineParams` の中を除いて `z.<名前>` を集める。名前を読めない使い方 (`z[key]`・`const { object } = z`) があれば
  * undefined で、そのときは全部を束ねる。`z` は全部入りの入れ物なので、そのまま束ねると locale ごと残る
  * (385 KB。使う名前だけなら 85 KB)。
  */
@@ -128,6 +147,7 @@ export const usedNames = (source: ts.SourceFile): readonly string[] | undefined 
   const names = new Set<string>();
   let readable = true;
   const visit = (node: ts.Node): void => {
+    if (isDefineParamsCall(node)) return;
     if (ts.isIdentifier(node) && node.text === "z") {
       const parent = node.parent;
       const isDeclaration = isImportBinding(parent);

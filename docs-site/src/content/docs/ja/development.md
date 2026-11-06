@@ -51,8 +51,8 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 
 新しい capture-scripts に上げる手順です。写しを手で直してはいけません。出どころは向こうの repo です。
 
-1. `capture-scripts.pin` を新しい tag にし、その tag の `types/host.d.ts` を 1 バイトも替えずに写す。
-   `pnpm run host-types:check` が tag の raw と比べる。
+1. `capture-scripts.pin` を新しい tag にし、その tag の `types/host.d.ts` と `tools/read-params.ts`（写す先は
+   `src/vendor/read-params.ts`）を 1 バイトも替えずに写す。`pnpm run host-types:check` が tag の raw と比べる。
 2. `pnpm test`。型が変わったなら、`test/fixtures/` の TS と `test/compile.test.ts` の期待（固定した
    sha256・診断の並び）を新しい型に合わせ、新しい型を使う fixture と試験を足す。古い写しで赤くなる
    試験にすると、写しがどの版かも試験が言う。
@@ -84,6 +84,9 @@ capture-scripts の `types/host.d.ts` の**写し**で、どの tag から写し
 話します。compiler は回数を数える偽物に差してあるので、制約の違反が本体に届かないことを言えます。
 `test/service.test.ts` は操作を直に、自分の cache で呼び、cache に当たったときの答えを固定します。使い回すのは
 JavaScript だけで、名前・版・`phase`・`options` は要求の物です。
+
+`test/params.test.ts` は `defineParams` の宣言と渡した名前の照合を見ます。いちばん効くのは順の試験で、同じ TS を
+「渡す → 渡さない → 渡す」の順で頼み、200・422・200 と `cached` を見ます。
 
 `test/zod.test.ts` は組み上げた JavaScript を `node:vm` で走らせ、ブラウザなしで動きを見ます。`Function` を Proxy に
 替えて呼ばれた数を数え、完了値が Promise か、strict で走るかを見ます。本物の Chromium と CSP での確かめは

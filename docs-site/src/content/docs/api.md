@@ -26,6 +26,7 @@ never actually triggers it.
 
 ```json
 {
+  "variableNames": ["query"],
   "scripts": [
     {
       "id": "autoscroll",
@@ -39,15 +40,16 @@ never actually triggers it.
 }
 ```
 
-| Field     | Constraint                         | Notes                                                                                                       |
-| --------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `scripts` | 0 to 100 items                     | All the level's scripts, in one request. Empty is valid: nothing is compiled and `scripts` comes back empty |
-| `id`      | `^[a-z][a-z0-9-]*$`, 1 to 64 chars | Becomes the file name inside the program (`/src/<id>.ts`)                                                   |
-| `version` | integer                            | Passed through untouched                                                                                    |
-| `phase`   | `preload` or `behavior`            | Passed through untouched                                                                                    |
-| `source`  | string                             | The TypeScript                                                                                              |
-| `sha256`  | `^[0-9a-f]{64}$`                   | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it                                             |
-| `options` | any JSON document, optional        | Passed through untouched                                                                                    |
+| Field           | Constraint                              | Notes                                                                                                                                                 |
+| --------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `variableNames` | list of `^[a-z][a-z0-9_]*$`, at most 32 | The names of the variables given to this crawl. The values are not sent. Checked against the required declarations; a missing one is a 422 (`BH0001`) |
+| `scripts`       | 0 to 100 items                          | All the level's scripts, in one request. Empty is valid: nothing is compiled and `scripts` comes back empty                                           |
+| `id`            | `^[a-z][a-z0-9-]*$`, 1 to 64 chars      | Becomes the file name inside the program (`/src/<id>.ts`)                                                                                             |
+| `version`       | integer                                 | Passed through untouched                                                                                                                              |
+| `phase`         | `preload` or `behavior`                 | Passed through untouched                                                                                                                              |
+| `source`        | string                                  | The TypeScript                                                                                                                                        |
+| `sha256`        | `^[0-9a-f]{64}$`                        | sha256 of the UTF-8 bytes of `source`, as the ledger stamped it                                                                                       |
+| `options`       | any JSON document, optional             | Passed through untouched                                                                                                                              |
 
 All scripts are compiled **as one program**. They share the global scope in the page (none of
 them is a module), so two scripts declaring the same top-level name is a type error here, exactly
@@ -61,7 +63,27 @@ by the hash of that JavaScript. `id`, `version`, `phase` and `options` come back
 when the answer comes from memory: they are always the request's own.
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.10.0", "cached": false, "scripts": ["…"] }
+{
+  "typescript": "6.0.3",
+  "hostTypes": "v0.10.0",
+  "cached": false,
+  "scripts": ["…"],
+  "declarations": [
+    {
+      "id": "egov-law-search",
+      "unreadable": false,
+      "params": [
+        {
+          "name": "query",
+          "kind": "variable",
+          "required": true,
+          "summary": "法令名の検索語",
+          "schema": { "type": "string", "minLength": 1 }
+        }
+      ]
+    }
+  ]
+}
 ```
 
 `typescript` is the compiler version that produced the output. `hostTypes` is the capture-scripts
@@ -73,6 +95,8 @@ the same source sent under another name, another `phase` or another `options` ge
 An empty list answers the same way, with `scripts: []`. Nothing is compiled, but
 `typescript` and `hostTypes` are still there, so a level that runs nothing can report what would
 have compiled it.
+
+`declarations` holds each script's variable declarations, in the order of `scripts` ([Declaring variables](#declaring-variables)).
 
 ### 400 ValidationException
 
@@ -109,18 +133,25 @@ from a complete one to the consumer.
 {
   "message": "2 件の誤り",
   "typescript": "6.0.3",
-  "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }]
+  "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }],
+  "declarations": [{ "id": "bad", "params": [], "unreadable": false }],
+  "missingVariables": []
 }
 ```
 
-`file`, `line` and `col` are absent for a diagnostic that has no position.
+`file`, `line` and `col` are absent for a diagnostic that has no position. `declarations` reads what
+it can even when the types do not check, and `missingVariables` lists the required names that
+`variableNames` did not have. With these two the ledger can refuse before it creates a crawl row.
 
 A `code` starting with `TS` comes from TypeScript. One starting with `BH` is a rule of this service.
 
 | `code`   | Meaning                                                                                                                                                         |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BH0001` | A required variable is not in `variableNames`. It points at that line of the declaration                                                                        |
+| `BH0002` | A `defineParams` declaration cannot be read ([the forms it accepts](#declaring-variables)). `unreadable` in `declarations` is `true`                            |
 | `BH0003` | Zod is read in a form [other than the two accepted](#reading-zod), not in the first statement, or with `import("zod")`. `// @ts-nocheck` does not turn this off |
-| `BH0004` | A script whose `phase` is `preload` has an `import`. It runs in every frame on every navigation, with no host to report a failure to                            |
+| `BH0004` | A script whose `phase` is `preload` has an `import` or a `defineParams`. It runs in every frame on every navigation, with no host                               |
+| `BH0005` | The script reads `__bh.vars` directly. `// @ts-nocheck` does not turn this off                                                                                  |
 | `BH0006` | Not readable as a classic script: `export`, or a top-level `await` in a script with an `import`. In the page it would be a syntax error and nothing would run   |
 
 ## `GET /healthz`
@@ -169,6 +200,25 @@ it is assembled into this shape after emit:
   esbuild changes the JavaScript of the scripts that read Zod
 
 Comments above the `import` do not survive into the JavaScript.
+
+## Declaring variables
+
+A script reads a crawl's variables with `defineParams`.
+
+```ts
+const { query } = defineParams(z.object({ query: z.string().min(1).describe("法令名の検索語") }));
+```
+
+- **The declaration is read without running it** (`src/vendor/read-params.ts`, a copy whose source of truth
+  is capture-scripts). It accepts `z.object({ name: value })`, where a value is `z.string()` or `z.enum([…])`,
+  followed only by `.min`, `.max`, `.length`, `.optional` and `.describe`, with literal arguments. Once per
+  script. Anything else is `BH0002`.
+- **A name without `.optional()` is required.** Missing from `variableNames`, it is `BH0001`.
+- **Declarations are not cached.** The JavaScript depends only on the source, so the cache key does not change,
+  and reading the declaration and checking the names happen on every request. The same TypeScript asked with,
+  then without, then with the name answers 200, 422, 200.
+- **In the JavaScript it becomes `globalThis.__bh.vars`.** If `z` is read only inside the declaration, Zod is
+  not bundled.
 
 ## How the compiler is configured
 

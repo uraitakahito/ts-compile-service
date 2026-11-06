@@ -1,6 +1,9 @@
 dist
 node_modules
 pnpm-lock.yaml
+# capture-scripts の写し。host-types:check が 1 バイトまで見るので、整形できない
+src/vendor
+types
 generated/ssdk
 generated/client
 generated/openapi.json

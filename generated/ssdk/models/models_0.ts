@@ -13,7 +13,7 @@ import {
 } from "@smithy/server-common";
 import { DocumentType as __DocumentType } from "@smithy/types";
 
-import { Phase } from "./enums";
+import { ParamKind, Phase } from "./enums";
 
 /**
  * Describes one specific validation failure for an input member.
@@ -69,6 +69,228 @@ export namespace ValidationExceptionField {
 }
 
 /**
+ * 値の JSON Schema。鍵はこの 4 つだけ
+ * @public
+ */
+export interface ParamSchema {
+  type: string | undefined;
+  minLength?: number | undefined;
+  maxLength?: number | undefined;
+  enum?: string[] | undefined;
+}
+
+export namespace ParamSchema {
+  const memberValidators : {
+    type?: __MultiConstraintValidator<string>,
+    minLength?: __MultiConstraintValidator<number>,
+    maxLength?: __MultiConstraintValidator<number>,
+    enum?: __MultiConstraintValidator<Iterable<string>>,
+  } = {};
+  /**
+   * @internal
+   */
+  export const validate = (obj: ParamSchema, path: string = ""): __ValidationFailure[] => {
+    function getMemberValidator<T extends keyof typeof memberValidators>(member: T): NonNullable<typeof memberValidators[T]> {
+      if (memberValidators[member] === undefined) {
+        switch (member) {
+          case "type": {
+            memberValidators["type"] = new __CompositeValidator<string>([
+              new __RequiredValidator(),
+            ]);
+            break;
+          }
+          case "minLength": {
+            memberValidators["minLength"] = new __NoOpValidator();
+            break;
+          }
+          case "maxLength": {
+            memberValidators["maxLength"] = new __NoOpValidator();
+            break;
+          }
+          case "enum": {
+            memberValidators["enum"] = new __CompositeCollectionValidator<string>(
+              new __NoOpValidator(),
+              new __NoOpValidator()
+            );
+            break;
+          }
+        }
+      }
+      return memberValidators[member]!!;
+    }
+    return [
+      ...getMemberValidator("type").validate(obj.type, `${path}/type`),
+      ...getMemberValidator("minLength").validate(obj.minLength, `${path}/minLength`),
+      ...getMemberValidator("maxLength").validate(obj.maxLength, `${path}/maxLength`),
+      ...getMemberValidator("enum").validate(obj.enum, `${path}/enum`),
+    ];
+  }
+}
+
+/**
+ * 宣言された変数 1 つ。値は文字列だけ
+ * @public
+ */
+export interface DeclaredParam {
+  /**
+   * 変数の名前。台帳の schema と BrowserHive の ValueName と同じ式
+   * @public
+   */
+  name: string | undefined;
+
+  /**
+   * いつも variable。シークレットは defineParams で宣言しない
+   * @public
+   */
+  kind: ParamKind | undefined;
+
+  required: boolean | undefined;
+  /**
+   * .describe("…") の字
+   * @public
+   */
+  summary?: string | undefined;
+
+  /**
+   * 値の JSON Schema。鍵はこの 4 つだけ
+   * @public
+   */
+  schema: ParamSchema | undefined;
+}
+
+export namespace DeclaredParam {
+  const memberValidators : {
+    name?: __MultiConstraintValidator<string>,
+    kind?: __MultiConstraintValidator<string>,
+    required?: __MultiConstraintValidator<boolean>,
+    summary?: __MultiConstraintValidator<string>,
+    schema?: __MultiConstraintValidator<ParamSchema>,
+  } = {};
+  /**
+   * @internal
+   */
+  export const validate = (obj: DeclaredParam, path: string = ""): __ValidationFailure[] => {
+    function getMemberValidator<T extends keyof typeof memberValidators>(member: T): NonNullable<typeof memberValidators[T]> {
+      if (memberValidators[member] === undefined) {
+        switch (member) {
+          case "name": {
+            memberValidators["name"] = new __CompositeValidator<string>([
+              new __RequiredValidator(),
+              new __LengthValidator(1, 64),
+              new __PatternValidator("^[a-z][a-z0-9_]*$"),
+            ]);
+            break;
+          }
+          case "kind": {
+            memberValidators["kind"] = new __CompositeValidator<string>([
+              new __EnumValidator([
+                "variable",
+                ], [
+                "variable",
+              ]),
+              new __RequiredValidator(),
+            ]);
+            break;
+          }
+          case "required": {
+            memberValidators["required"] = new __CompositeValidator<boolean>([
+              new __RequiredValidator(),
+            ]);
+            break;
+          }
+          case "summary": {
+            memberValidators["summary"] = new __NoOpValidator();
+            break;
+          }
+          case "schema": {
+            memberValidators["schema"] = new __CompositeStructureValidator<ParamSchema>(
+              new __CompositeValidator<ParamSchema>([
+                new __RequiredValidator(),
+              ]),
+              ParamSchema.validate
+            );
+            break;
+          }
+        }
+      }
+      return memberValidators[member]!!;
+    }
+    return [
+      ...getMemberValidator("name").validate(obj.name, `${path}/name`),
+      ...getMemberValidator("kind").validate(obj.kind, `${path}/kind`),
+      ...getMemberValidator("required").validate(obj.required, `${path}/required`),
+      ...getMemberValidator("summary").validate(obj.summary, `${path}/summary`),
+      ...getMemberValidator("schema").validate(obj.schema, `${path}/schema`),
+    ];
+  }
+}
+
+/**
+ * 1 本のスクリプトの変数の宣言
+ * @public
+ */
+export interface Declaration {
+  id: string | undefined;
+  params: DeclaredParam[] | undefined;
+  /**
+   * 宣言を読めなかった（BH0002）。params は当てにならない
+   * @public
+   */
+  unreadable: boolean | undefined;
+}
+
+export namespace Declaration {
+  const memberValidators : {
+    id?: __MultiConstraintValidator<string>,
+    params?: __MultiConstraintValidator<Iterable<DeclaredParam>>,
+    unreadable?: __MultiConstraintValidator<boolean>,
+  } = {};
+  /**
+   * @internal
+   */
+  export const validate = (obj: Declaration, path: string = ""): __ValidationFailure[] => {
+    function getMemberValidator<T extends keyof typeof memberValidators>(member: T): NonNullable<typeof memberValidators[T]> {
+      if (memberValidators[member] === undefined) {
+        switch (member) {
+          case "id": {
+            memberValidators["id"] = new __CompositeValidator<string>([
+              new __RequiredValidator(),
+              new __LengthValidator(1, 64),
+              new __PatternValidator("^[a-z][a-z0-9-]*$"),
+            ]);
+            break;
+          }
+          case "params": {
+            memberValidators["params"] = new __CompositeCollectionValidator<DeclaredParam>(
+              new __CompositeValidator<DeclaredParam[]>([
+                new __RequiredValidator(),
+              ]),
+              new __CompositeStructureValidator<DeclaredParam>(
+                new __NoOpValidator(),
+                DeclaredParam.validate
+              )
+            );
+            break;
+          }
+          case "unreadable": {
+            memberValidators["unreadable"] = new __CompositeValidator<boolean>([
+              new __RequiredValidator(),
+            ]);
+            break;
+          }
+        }
+      }
+      return memberValidators[member]!!;
+    }
+    return [
+      ...getMemberValidator("id").validate(obj.id, `${path}/id`),
+      ...getMemberValidator("params").validate(obj.params, `${path}/params`),
+      ...getMemberValidator("unreadable").validate(obj.unreadable, `${path}/unreadable`),
+    ];
+  }
+}
+
+/**
  * @public
  */
 export interface Diagnostic {
@@ -76,8 +298,9 @@ export interface Diagnostic {
   line?: number | undefined;
   col?: number | undefined;
   /**
-   * TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・
-   * BH0004（preload の import）・BH0006（classic script として読めない）
+   * TypeScript の誤りは TS2322 のような code。この service の決まりは BH0001（必須の変数が渡されていない）・
+   * BH0002（defineParams の宣言を読めない）・BH0003（import の形）・BH0004（preload の import か defineParams）・
+   * BH0005（__bh.vars の直読み）・BH0006（classic script として読めない）
    * @public
    */
   code: string | undefined;
@@ -241,11 +464,19 @@ export interface CompileInput {
    * @public
    */
   scripts: Script[] | undefined;
+
+  /**
+   * このクロールに渡された変数の名前。値は送らない。必須の宣言と照らし、足りなければ 422（BH0001）。
+   * JS は source だけで決まるので、cache の鍵には入らない
+   * @public
+   */
+  variableNames: string[] | undefined;
 }
 
 export namespace CompileInput {
   const memberValidators : {
     scripts?: __MultiConstraintValidator<Iterable<Script>>,
+    variableNames?: __MultiConstraintValidator<Iterable<string>>,
   } = {};
   /**
    * @internal
@@ -267,12 +498,26 @@ export namespace CompileInput {
             );
             break;
           }
+          case "variableNames": {
+            memberValidators["variableNames"] = new __CompositeCollectionValidator<string>(
+              new __CompositeValidator<string[]>([
+                new __RequiredValidator(),
+                new __LengthValidator(0, 32),
+              ]),
+              new __CompositeValidator<string>([
+                new __LengthValidator(1, 64),
+                new __PatternValidator("^[a-z][a-z0-9_]*$"),
+              ])
+            );
+            break;
+          }
         }
       }
       return memberValidators[member]!!;
     }
     return [
       ...getMemberValidator("scripts").validate(obj.scripts, `${path}/scripts`),
+      ...getMemberValidator("variableNames").validate(obj.variableNames, `${path}/variableNames`),
     ];
   }
 }
@@ -305,6 +550,12 @@ export interface CompileOutput {
    * @public
    */
   cached: boolean | undefined;
+
+  /**
+   * スクリプトごとの変数の宣言（defineParams）。入力と同じ並び
+   * @public
+   */
+  declarations: Declaration[] | undefined;
 }
 
 export namespace CompileOutput {
@@ -313,6 +564,7 @@ export namespace CompileOutput {
     hostTypes?: __MultiConstraintValidator<string>,
     scripts?: __MultiConstraintValidator<Iterable<Script>>,
     cached?: __MultiConstraintValidator<boolean>,
+    declarations?: __MultiConstraintValidator<Iterable<Declaration>>,
   } = {};
   /**
    * @internal
@@ -352,6 +604,18 @@ export namespace CompileOutput {
             ]);
             break;
           }
+          case "declarations": {
+            memberValidators["declarations"] = new __CompositeCollectionValidator<Declaration>(
+              new __CompositeValidator<Declaration[]>([
+                new __RequiredValidator(),
+              ]),
+              new __CompositeStructureValidator<Declaration>(
+                new __NoOpValidator(),
+                Declaration.validate
+              )
+            );
+            break;
+          }
         }
       }
       return memberValidators[member]!!;
@@ -361,6 +625,7 @@ export namespace CompileOutput {
       ...getMemberValidator("hostTypes").validate(obj.hostTypes, `${path}/hostTypes`),
       ...getMemberValidator("scripts").validate(obj.scripts, `${path}/scripts`),
       ...getMemberValidator("cached").validate(obj.cached, `${path}/cached`),
+      ...getMemberValidator("declarations").validate(obj.declarations, `${path}/declarations`),
     ];
   }
 }

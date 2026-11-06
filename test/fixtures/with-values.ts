@@ -1,6 +1,8 @@
-/** 受け皿の vars と secrets (capture-scripts v0.6.0 から) を読む。値は string | undefined なので ?? で受ける */
+import { z } from "zod";
+
+/** 変数を defineParams で、シークレットを受け皿で読む (capture-scripts v0.11.0 から)。 */
 (async (): Promise<void> => {
-  const query = String(globalThis.__bh.vars.query ?? "既定の語");
+  const { query } = defineParams(z.object({ query: z.string() }));
   const token = globalThis.__bh.secrets.api_token;
   globalThis.__bh.report({ query, hasToken: token !== undefined });
 })();

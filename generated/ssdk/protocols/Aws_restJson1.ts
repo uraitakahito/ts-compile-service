@@ -29,7 +29,14 @@ import {
 } from "@smithy/types";
 
 import { CompileFailed, SourceHashMismatch, ValidationException } from "../models/errors";
-import { Diagnostic, Script, ValidationExceptionField } from "../models/models_0";
+import {
+  Declaration,
+  DeclaredParam,
+  Diagnostic,
+  ParamSchema,
+  Script,
+  ValidationExceptionField,
+} from "../models/models_0";
 import { CompileServerInput, CompileServerOutput } from "../server/operations/Compile";
 import { GetHealthServerInput, GetHealthServerOutput } from "../server/operations/GetHealth";
 
@@ -56,6 +63,7 @@ export const deserializeCompileRequest = async (
   const data: Record<string, any> = __expectNonNull((__expectObject(await parseBody(output.body, context))), "body");
   const doc = take(data, {
     'scripts': _ => de_ScriptList(_, context),
+    'variableNames': _ => de_ValueNameList(_, context),
   });
   Object.assign(contents, doc);
   return contents;
@@ -104,6 +112,7 @@ export const serializeCompileResponse = async (
   let body: any;
   body = JSON.stringify(take(input, {
     'cached': [],
+    'declarations': _ => se_DeclarationList(_, context),
     'hostTypes': [],
     'scripts': _ => se_ScriptList(_, context),
     'typescript': [],
@@ -304,8 +313,10 @@ export const serializeCompileFailedError = async (
   });
   let body: any;
   body = JSON.stringify(take(input, {
+    'declarations': _ => se_DeclarationList(_, context),
     'diagnostics': _ => se_DiagnosticList(_, context),
     'message': [],
+    'missingVariables': _ => se_ValueNameList(_, context),
     'typescript': [],
   }));
   return new __HttpResponse({
@@ -380,6 +391,60 @@ const se_ValidationExceptionFieldList = (
 }
 
 /**
+ * serializeAws_restJson1Declaration
+ */
+const se_Declaration = (
+  input: Declaration,
+  context: __SerdeContext
+): any => {
+  return take(input, {
+    'id': [],
+    'params': _ => se_DeclaredParamList(_, context),
+    'unreadable': [],
+  });
+}
+
+/**
+ * serializeAws_restJson1DeclarationList
+ */
+const se_DeclarationList = (
+  input: Declaration[],
+  context: __SerdeContext
+): any => {
+  return input.filter((e: any) => e != null).map(entry => {
+    return se_Declaration(entry, context);
+  });
+}
+
+/**
+ * serializeAws_restJson1DeclaredParam
+ */
+const se_DeclaredParam = (
+  input: DeclaredParam,
+  context: __SerdeContext
+): any => {
+  return take(input, {
+    'kind': [],
+    'name': [],
+    'required': [],
+    'schema': _ => se_ParamSchema(_, context),
+    'summary': [],
+  });
+}
+
+/**
+ * serializeAws_restJson1DeclaredParamList
+ */
+const se_DeclaredParamList = (
+  input: DeclaredParam[],
+  context: __SerdeContext
+): any => {
+  return input.filter((e: any) => e != null).map(entry => {
+    return se_DeclaredParam(entry, context);
+  });
+}
+
+/**
  * serializeAws_restJson1Diagnostic
  */
 const se_Diagnostic = (
@@ -404,6 +469,31 @@ const se_DiagnosticList = (
 ): any => {
   return input.filter((e: any) => e != null).map(entry => {
     return se_Diagnostic(entry, context);
+  });
+}
+
+/**
+ * serializeAws_restJson1ParamEnum
+ */
+const se_ParamEnum = (
+  input: string[],
+  context: __SerdeContext
+): any => {
+  return input.filter((e: any) => e != null);
+}
+
+/**
+ * serializeAws_restJson1ParamSchema
+ */
+const se_ParamSchema = (
+  input: ParamSchema,
+  context: __SerdeContext
+): any => {
+  return take(input, {
+    'enum': _ => se_ParamEnum(_, context),
+    'maxLength': [],
+    'minLength': [],
+    'type': [],
   });
 }
 
@@ -434,6 +524,16 @@ const se_ScriptList = (
   return input.filter((e: any) => e != null).map(entry => {
     return se_Script(entry, context);
   });
+}
+
+/**
+ * serializeAws_restJson1ValueNameList
+ */
+const se_ValueNameList = (
+  input: string[],
+  context: __SerdeContext
+): any => {
+  return input.filter((e: any) => e != null);
 }
 
 /**
@@ -475,6 +575,22 @@ const de_ScriptList = (
       throw new TypeError('All elements of the non-sparse list "ts.compile#ScriptList" must be non-null.');
     }
     return de_Script(entry, context);
+  });
+  return retVal;
+}
+
+/**
+ * deserializeAws_restJson1ValueNameList
+ */
+const de_ValueNameList = (
+  output: any,
+  context: __SerdeContext
+): string[] => {
+  const retVal = (output || []).map((entry: any) => {
+    if (entry === null) {
+      throw new TypeError('All elements of the non-sparse list "ts.compile#ValueNameList" must be non-null.');
+    }
+    return __expectString(entry) as any;
   });
   return retVal;
 }

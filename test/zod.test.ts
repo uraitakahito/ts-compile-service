@@ -264,6 +264,7 @@ describe("preload の import", () => {
   const fresh = () =>
     createService({ compile, cache: new BoundedCache(8), typescript: "6.0.3", hostTypes: "v0" });
   const request = (phase: "behavior" | "preload", source: string) => ({
+    variableNames: [],
     scripts: [{ id: "s", version: 1, phase, source, sha256: sha256(source), options: {} }],
   });
 

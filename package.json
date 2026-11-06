@@ -9,6 +9,7 @@
     "@aws-sdk/core を引くのは restJson1 の codegen が AWS 側の物だから。この service は AWS を使わない。",
     "typescript は runtime の依存 —— 変換の本体 (src/compile.ts) が createProgram で型検査して emit する。",
     "zod と esbuild も runtime の依存 —— スクリプトの import を src/zod-bundle.ts が束ねる。",
+    "src/vendor/read-params.ts は capture-scripts の写しで、zod で defineParams の宣言を組む。",
     "zod の版は capture-scripts と揃える (host-types:check が見る)。上げると Zod を読む JS の sha256 が変わる。",
     "生成物の作り直しは `pnpm run smithy` (scripts/smithy.sh。JRE 同梱の Smithy CLI を .smithy-cli/ に落とす)。",
     "generated/ は commit する。CI の smithy:check が再生成して diff を見る。",

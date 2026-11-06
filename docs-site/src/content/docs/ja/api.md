@@ -25,6 +25,7 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 
 ```json
 {
+  "variableNames": ["query"],
   "scripts": [
     {
       "id": "autoscroll",
@@ -38,15 +39,16 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の�
 }
 ```
 
-| 欄        | 制約                            | 備考                                                                                        |
-| --------- | ------------------------------- | ------------------------------------------------------------------------------------------- |
-| `scripts` | 0〜100 本                       | その段のスクリプトを丸ごと、1 つの request で。空も通る: 何も変換せず、`scripts` は空で返る |
-| `id`      | `^[a-z][a-z0-9-]*$`、1〜64 文字 | program の中の file 名になる（`/src/<id>.ts`）                                              |
-| `version` | 整数                            | 触らずに返す                                                                                |
-| `phase`   | `preload` か `behavior`         | 触らずに返す                                                                                |
-| `source`  | 文字列                          | TypeScript                                                                                  |
-| `sha256`  | `^[0-9a-f]{64}$`                | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                       |
-| `options` | 任意の JSON document。省略可    | 触らずに返す                                                                                |
+| 欄              | 制約                                | 備考                                                                                             |
+| --------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `variableNames` | `^[a-z][a-z0-9_]*$` の列・32 個まで | このクロールに渡された変数の名前。値は送らない。必須の宣言と照らし、足りなければ 422（`BH0001`） |
+| `scripts`       | 0〜100 本                           | その段のスクリプトを丸ごと、1 つの request で。空も通る: 何も変換せず、`scripts` は空で返る      |
+| `id`            | `^[a-z][a-z0-9-]*$`、1〜64 文字     | program の中の file 名になる（`/src/<id>.ts`）                                                   |
+| `version`       | 整数                                | 触らずに返す                                                                                     |
+| `phase`         | `preload` か `behavior`             | 触らずに返す                                                                                     |
+| `source`        | 文字列                              | TypeScript                                                                                       |
+| `sha256`        | `^[0-9a-f]{64}$`                    | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                            |
+| `options`       | 任意の JSON document。省略可        | 触らずに返す                                                                                     |
 
 スクリプトは全部を**1 つの program**として compile します。ページの中では global を共有する（どれも
 module ではない）ので、2 本が同じ top-level の名前を宣言すればここで型エラーになります。向こうで
@@ -60,13 +62,35 @@ runtime の衝突になるのと同じです。[Zod を読む](#zod-を読む)�
 いつも要求の物です。
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.10.0", "cached": false, "scripts": ["…"] }
+{
+  "typescript": "6.0.3",
+  "hostTypes": "v0.10.0",
+  "cached": false,
+  "scripts": ["…"],
+  "declarations": [
+    {
+      "id": "egov-law-search",
+      "unreadable": false,
+      "params": [
+        {
+          "name": "query",
+          "kind": "variable",
+          "required": true,
+          "summary": "法令名の検索語",
+          "schema": { "type": "string", "minLength": 1 }
+        }
+      ]
+    }
+  ]
+}
 ```
 
 `typescript` は出力を作った compiler の版。`hostTypes` は何に向けて compile したか（受け皿の型の
 capture-scripts の tag。`/healthz` が名乗るのと同じ値）で、報告に両方を載せるのにサービスへ訊き直さずに
 済む。`cached` は、同じ source の hash の並びを最近 compile していて、JavaScript が memory から出たとき `true`。
 使い回すのは JavaScript だけで、同じ source を別の名前・別の `phase`・別の `options` で送れば、それが返る。
+
+`declarations` はスクリプトごとの変数の宣言で、並びは `scripts` と同じ（[変数を宣言する](#変数を宣言する)）。
 
 スクリプトが空でも同じ形で答え、`scripts` は `[]`。何も変換しないが `typescript` と `hostTypes` は付くので、
 何も走らせない段でも「何で変換するはずだったか」を報告に載せられる。
@@ -104,18 +128,25 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 {
   "message": "2 件の誤り",
   "typescript": "6.0.3",
-  "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }]
+  "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }],
+  "declarations": [{ "id": "bad", "params": [], "unreadable": false }],
+  "missingVariables": []
 }
 ```
 
-位置の無い診断では `file`・`line`・`col` が欠けます。
+位置の無い診断では `file`・`line`・`col` が欠けます。`declarations` は型が通らなくても読める物を読み、
+`missingVariables` は必須の宣言のうち `variableNames` に無かった名前です。台帳はこの 2 つで、クロールの行を
+立てる前に断れます。
 
 `code` は TypeScript の誤りが `TS` で始まり、この service の決まりが `BH` で始まります。
 
 | `code`   | 意味                                                                                                                             |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `BH0001` | 必須の変数が `variableNames` に無い。誤りは宣言のその行を指す                                                                    |
+| `BH0002` | `defineParams` の宣言を読めない（[書ける形](#変数を宣言する)を外れた）。`declarations` の `unreadable` が `true` になる          |
 | `BH0003` | zod の読み方が[受ける 2 形](#zod-を読む)でない。先頭の文でない。`import("zod")`。`// @ts-nocheck` でも効く                       |
-| `BH0004` | `phase` が `preload` のスクリプトに `import` がある。全部のフレームで遷移のたびに走り、失敗を書く受け皿も無い                    |
+| `BH0004` | `phase` が `preload` のスクリプトに `import` か `defineParams` がある。全部のフレームで遷移のたびに走り、受け皿も無い            |
+| `BH0005` | `__bh.vars` を直に読んでいる。`// @ts-nocheck` でも効く                                                                          |
 | `BH0006` | classic script として読めない。`export` と、`import` のあるスクリプトの top-level の `await`。ページでは構文エラーで何も走らない |
 
 ## `GET /healthz`
@@ -160,6 +191,22 @@ import * as z from "zod/mini";
   JavaScript は変わります
 
 `import` の前のコメントは JavaScript に残りません。
+
+## 変数を宣言する
+
+スクリプトはクロールごとの変数を `defineParams` で読みます。
+
+```ts
+const { query } = defineParams(z.object({ query: z.string().min(1).describe("法令名の検索語") }));
+```
+
+- **宣言は走らせずに読みます**（`src/vendor/read-params.ts`。capture-scripts が正の写し）。書けるのは `z.object({ 名前: 値 })` で、
+  値は `z.string()` か `z.enum([…])`、続けられるのは `.min`・`.max`・`.length`・`.optional`・`.describe` だけ、引数はリテラルだけ。
+  1 本に 1 回。外れれば `BH0002` です
+- **`.optional()` の無い名前は必須です。** `variableNames` に無ければ `BH0001`
+- **宣言は cache に入れません。** JavaScript は source だけで決まるので cache の鍵は変わらず、宣言の読みと名前の照合は要求ごとにします。
+  同じ TS を「渡す → 渡さない → 渡す」の順で頼むと 200・422・200 です
+- **JavaScript では `globalThis.__bh.vars` に置き換わります。** `z` を宣言の中でしか読まなければ Zod は入りません
 
 ## compiler の設定
 
