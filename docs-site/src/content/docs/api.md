@@ -51,7 +51,8 @@ never actually triggers it.
 
 All scripts are compiled **as one program**. They share the global scope in the page (none of
 them is a module), so two scripts declaring the same top-level name is a type error here, exactly
-as it would be a clash at runtime there.
+as it would be a clash at runtime there. A script that [reads Zod](#reading-zod) is the exception:
+it is a module to the compiler and sits inside a block in the page, so it clashes with nothing.
 
 ### 200
 
@@ -60,7 +61,7 @@ by the hash of that JavaScript. `id`, `version`, `phase` and `options` come back
 when the answer comes from memory: they are always the request's own.
 
 ```json
-{ "typescript": "6.0.3", "hostTypes": "v0.7.0", "cached": false, "scripts": ["…"] }
+{ "typescript": "6.0.3", "hostTypes": "v0.10.0", "cached": false, "scripts": ["…"] }
 ```
 
 `typescript` is the compiler version that produced the output. `hostTypes` is the capture-scripts
@@ -100,13 +101,13 @@ check exists at all, when TCP already protects the bytes: see
 
 ### 422 CompileFailed
 
-At least one script did not type-check. **No JavaScript comes back for any script**, including
-the ones that were fine. A partially converted list would be indistinguishable from a
-complete one to the consumer.
+At least one script did not type-check or broke a rule. **No JavaScript comes back for any
+script**, including the ones that were fine. A partially converted list would be indistinguishable
+from a complete one to the consumer.
 
 ```json
 {
-  "message": "2 件の型エラー",
+  "message": "2 件の誤り",
   "typescript": "6.0.3",
   "diagnostics": [{ "file": "bad.ts", "line": 3, "col": 7, "code": "TS2322", "message": "…" }]
 }
@@ -114,15 +115,60 @@ complete one to the consumer.
 
 `file`, `line` and `col` are absent for a diagnostic that has no position.
 
+A `code` starting with `TS` comes from TypeScript. One starting with `BH` is a rule of this service.
+
+| `code`   | Meaning                                                                                                                                                         |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BH0003` | Zod is read in a form [other than the two accepted](#reading-zod), not in the first statement, or with `import("zod")`. `// @ts-nocheck` does not turn this off |
+| `BH0004` | A script whose `phase` is `preload` has an `import`. It runs in every frame on every navigation, with no host to report a failure to                            |
+| `BH0006` | Not readable as a classic script: `export`, or a top-level `await` in a script with an `import`. In the page it would be a syntax error and nothing would run   |
+
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.7.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.10.0" }
 ```
 
 `hostTypes` is the capture-scripts tag whose `types/host.d.ts` the service compiles against (the
 content of `capture-scripts.pin`). A script that type-checks in capture-scripts' own CI at that
 tag type-checks here.
+
+## Reading Zod
+
+A script can begin with one of these. Only these two forms are accepted. Any other package, and
+`zod/locales`, is `TS2307`.
+
+```ts
+import { z } from "zod";
+import * as z from "zod/mini";
+```
+
+The types come from the real Zod, the same version as capture-scripts (`host-types:check` looks).
+The JavaScript cannot contain an `import`, because BrowserHive evaluates it as a classic script, so
+it is assembled into this shape after emit:
+
+```js
+"use strict";
+{
+  // zod 4.6.7 (MIT)
+  const { z } = (() => {
+    /* Zod, bundled with only the names in use */
+  })();
+  // the script
+}
+```
+
+- **Only the names in use are bundled.** `z.<name>` is collected, leaving out type positions. Expect
+  85 KB (15 KB for `zod/mini`). A use whose name cannot be read, such as `z[key]`, bundles all of it
+  (385 KB)
+- **It is bundled `jitless`.** Otherwise Zod tries to build its fast validators with `new Function`.
+  On a page whose `script-src` forbids eval, that throws, and a violation report goes to the site
+- **It is wrapped in a block.** Wrapping it in a function would take the script's last expression
+  out of the completion value, and BrowserHive could not wait for the script to finish
+- **A script with no `import` keeps the same bytes as before.** Moving to another version of Zod or
+  esbuild changes the JavaScript of the scripts that read Zod
+
+Comments above the `import` do not survive into the JavaScript.
 
 ## How the compiler is configured
 
@@ -132,13 +178,15 @@ in that repository's CI must be green here, and the other way round.
 | Option               | Value                                                                                                 |
 | -------------------- | ----------------------------------------------------------------------------------------------------- |
 | `target` / `module`  | ES2023 / ESNext                                                                                       |
+| `moduleResolution`   | Bundler. From a script, only `zod` and `zod/mini` resolve                                             |
+| `skipLibCheck`       | on: Zod's d.ts is not checked (three scripts take 117 ms instead of 556 ms)                           |
 | `lib`                | ES2023 and DOM                                                                                        |
 | `strict`             | on                                                                                                    |
 | `erasableSyntaxOnly` | on: no enums, namespaces or parameter properties, so the JavaScript is the TypeScript minus its types |
 | `removeComments`     | off: comments survive into the archive                                                                |
 
 The emitted JavaScript begins with `"use strict";`, which the compiler adds to every non-module
-file.
+file and the assembly adds to a script that [reads Zod](#reading-zod).
 
 ## Source of truth
 

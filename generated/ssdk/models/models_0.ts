@@ -76,7 +76,8 @@ export interface Diagnostic {
   line?: number | undefined;
   col?: number | undefined;
   /**
-   * TS2322 のような code
+   * TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・
+   * BH0004（preload の import）・BH0006（classic script として読めない）
    * @public
    */
   code: string | undefined;

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * `types/host.d.ts` が、`capture-scripts.pin` の tag の `types/host.d.ts` と 1 バイトも違わないことを見る。
+ * 依存の `zod` の版が、その tag の dev の依存と同じことも見る。
  *
  * 受け皿 `__bh` の型は capture-scripts が正で、ここに在るのは写し。写しがずれると、向こうの CI で通った TS が
  * ここで 422 になる (逆も)。submodule にしないのは、写す物が 1 ファイルだから —— raw を 1 回引けば足りる。
@@ -36,3 +37,20 @@ if (upstream !== copy) {
   process.exit(1);
 }
 process.stdout.write(`✓ types/host.d.ts は capture-scripts ${pin} と同じ\n`);
+
+// Zod の版。向こうの tsc とここの型検査が違う Zod を読むと、向こうの CI で通った TS がここで 422 になる (逆も)
+const manifestUrl = `https://raw.githubusercontent.com/uraitakahito/capture-scripts/${pin}/package.json`;
+const manifestRes = await fetch(manifestUrl, { signal: AbortSignal.timeout(20_000) });
+if (!manifestRes.ok) {
+  process.stderr.write(`${manifestUrl} → ${String(manifestRes.status)}\n`);
+  process.exit(1);
+}
+const theirs = (await manifestRes.json()).devDependencies?.zod;
+const ours = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).dependencies?.zod;
+if (theirs !== ours) {
+  process.stderr.write(
+    `zod の版が capture-scripts ${pin} と違う (あちら ${String(theirs)}・こちら ${String(ours)})。揃えること\n`,
+  );
+  process.exit(1);
+}
+process.stdout.write(`✓ zod ${String(ours)} は capture-scripts ${pin} と同じ\n`);

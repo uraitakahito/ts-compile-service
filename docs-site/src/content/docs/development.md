@@ -70,6 +70,22 @@ the other repository.
    examples on Quickstart; the tag you are about to cut), and the examples that call the host (the
    `src=` lines on Quickstart).
 
+## Zod and esbuild
+
+`src/zod-bundle.ts` bundles a script's `import` ([API](/api/#reading-zod) has the shape). Both are
+runtime dependencies at pinned versions. Moving either changes the JavaScript of the scripts that
+read Zod, so there are steps:
+
+1. Move Zod in capture-scripts first, tag it, and point `capture-scripts.pin` at that tag.
+   `host-types:check` compares the version with that repository's dev dependency.
+2. Run `pnpm test`. The pinned sha256 in `test/zod.test.ts` goes red. That is the point: you find out
+   the JavaScript changed before you update the value.
+3. See that the size window and the test counting `new Function` through `node:vm` stay green. A
+   change in how Zod reaches its JIT shows up here.
+
+`allowBuilds` keeps esbuild's build script from running (`pnpm-workspace.yaml`). The binary is read
+from `@esbuild/<platform>` at run time.
+
 ## Tests
 
 `pnpm test` runs vitest. `test/compile.test.ts` exercises the compiler wrapper on fixtures (a
@@ -78,6 +94,10 @@ generated server on port 0 and speaks HTTP to it, with the compiler replaced by 
 so it can assert that constraint violations never reach it. `test/service.test.ts` calls the
 operation directly with a cache of its own, to pin down what a cache hit answers: the JavaScript
 is reused, the names, versions, `phase` and `options` are the request's.
+
+`test/zod.test.ts` runs the assembled JavaScript in `node:vm`, to see how it behaves with no
+browser: it replaces `Function` with a Proxy that counts the calls, and looks at the completion value
+and at strict mode. The check with a real Chromium and a real CSP is in capture-scheduler's e2e.
 
 `test/client.test.ts` is the contract test: it drives the same server through the generated
 client, configured with nothing but an `endpoint`. If the hand-written service drifts from the
@@ -97,7 +117,8 @@ the pin. Neither the Smithy CLI nor a JVM is in any stage.
 
 CI builds the image on every pull request, starts it, and sends it a script with a type error,
 expecting a 422 that mentions `TS2322` and not `TS7017`, which is what a missing host-type copy
-would produce.
+would produce. It also sends a script that reads Zod and expects a 200, which fails if zod or esbuild
+fell out of the `--prod` dependencies.
 
 Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yaml`, which builds `linux/arm64` on an
 ARM runner and pushes `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z`. The `version` in

@@ -97,7 +97,7 @@
         "schemas": {
             "CompileFailedResponseContent": {
                 "type": "object",
-                "description": "1 本でも型が通らなかった。1 本も返さない。",
+                "description": "1 本でも型か決まりが通らなかった。1 本も返さない。",
                 "properties": {
                     "message": {
                         "type": "string"
@@ -181,7 +181,7 @@
                     },
                     "code": {
                         "type": "string",
-                        "description": "TS2322 のような code"
+                        "description": "TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・\nBH0004（preload の import）・BH0006（classic script として読めない）"
                     },
                     "message": {
                         "type": "string"

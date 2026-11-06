@@ -32,7 +32,7 @@ export class ValidationException extends __BaseException {
 }
 
 /**
- * 1 本でも型が通らなかった。1 本も返さない。
+ * 1 本でも型か決まりが通らなかった。1 本も返さない。
  * @public
  */
 export class CompileFailed extends __BaseException {
