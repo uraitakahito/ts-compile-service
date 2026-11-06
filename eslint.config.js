@@ -14,6 +14,8 @@ export default tseslint.config(
       // 変換される側の TS と、受け皿の型の写し。この project の source ではない (tsconfig も除外)
       "test/fixtures/**",
       "types/**",
+      // capture-scripts の写し (host-types:check が 1 バイトまで見る)。ここで直せない
+      "src/vendor/**",
       ".smithy-cli/**",
       "build/**",
       // npm の別 project (Astro)。root の tsconfig の外

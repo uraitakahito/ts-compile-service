@@ -2,12 +2,21 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
 import ts from "typescript";
+import { paramProblems } from "./params.js";
 import { hostTypesPath, repoRoot } from "./paths.js";
-import { assemble, importProblems, isZodEntry, usedNames, zodEntryOf } from "./zod-bundle.js";
+import {
+  assemble,
+  importProblems,
+  isDefineParamsCall,
+  isZodEntry,
+  usedNames,
+  zodEntryOf,
+} from "./zod-bundle.js";
 
 /**
  * 1 件の誤り。`code` は TypeScript の物が "TS2322" の形、この service の決まりが "BH0003" の形
- * (BH0003 `import` の形・BH0004 preload の `import`・BH0006 classic で読めない)。`line` と `col` は 1 始まり。
+ * (BH0001 必須の変数が無い・BH0002 宣言を読めない・BH0003 `import` の形・BH0004 preload の `import` か
+ * `defineParams`・BH0005 `__bh.vars` の直読み・BH0006 classic で読めない)。`line` と `col` は 1 始まり。
  */
 export interface Diagnostic {
   file?: string;
@@ -74,14 +83,28 @@ const resolveModule = (name: string, containingFile: string): ts.ResolvedModuleF
     .resolvedModule;
 };
 
-/** 受ける形の `import` を JS から消す。Zod は組み上げで前に置く */
-const dropZodImport: ts.TransformerFactory<ts.SourceFile> = (context) => (source) => {
-  const [first] = source.statements;
-  if (first === undefined || zodEntryOf(source) === undefined) return source;
-  return context.factory.updateSourceFile(source, [
-    context.factory.createNotEmittedStatement(first),
-    ...source.statements.slice(1),
-  ]);
+/**
+ * ページで走る形にする。受ける形の `import` を消し (Zod は組み上げで前に置く)、`defineParams(…)` を
+ * `globalThis.__bh.vars` に置き換える。値の検査は台帳が始める前に済ませているので、ページでは読むだけ。
+ */
+const toPageForm: ts.TransformerFactory<ts.SourceFile> = (context) => (source) => {
+  const { factory } = context;
+  const visit: ts.Visitor = (node) =>
+    isDefineParamsCall(node)
+      ? factory.createPropertyAccessExpression(
+          factory.createPropertyAccessExpression(factory.createIdentifier("globalThis"), "__bh"),
+          "vars",
+        )
+      : ts.visitEachChild(node, visit, context);
+  const dropsImport = zodEntryOf(source) !== undefined;
+  return factory.updateSourceFile(
+    source,
+    source.statements.map((statement, index) =>
+      dropsImport && index === 0
+        ? factory.createNotEmittedStatement(statement)
+        : (ts.visitNode(statement, visit, ts.isStatement) ?? statement),
+    ),
+  );
 };
 
 /**
@@ -148,11 +171,14 @@ export const compile = (scripts: readonly { id: string; source: string }[]): Com
   });
   const diagnostics = [
     ...ts.getPreEmitDiagnostics(program).map(toDiagnostic),
-    ...sources.flatMap(({ id, source }) => importProblems(id, source)),
+    ...sources.flatMap(({ id, source }) => [
+      ...importProblems(id, source),
+      ...paramProblems(id, source.text, source),
+    ]),
   ];
   if (diagnostics.length > 0) return { diagnostics };
 
-  program.emit(undefined, undefined, undefined, false, { before: [dropZodImport] });
+  program.emit(undefined, undefined, undefined, false, { before: [toPageForm] });
   for (const { id, source } of sources) {
     const entry = zodEntryOf(source);
     const emitted = outputs.get(`/src/${id}.js`);

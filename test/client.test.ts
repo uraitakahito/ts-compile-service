@@ -70,13 +70,15 @@ describe("生成した client と生成した server は、同じ model を話�
   });
 
   it("スクリプトが空でも Compile は 200 で、scripts は空 (ValidationException にならない)", async () => {
-    const out = await client.send(new CompileCommand({ scripts: [] }));
+    const out = await client.send(new CompileCommand({ variableNames: [], scripts: [] }));
     expect(out).toMatchObject({ typescript: "6.0.3", hostTypes: "v0.2.0", scripts: [] });
   });
 
   it("Compile は source と sha256 だけ JS にして、何で・何に向けて変換したかを付けて返す", async () => {
     const source = fixture("good.ts");
-    const out = await client.send(new CompileCommand({ scripts: [script("good", source)] }));
+    const out = await client.send(
+      new CompileCommand({ variableNames: [], scripts: [script("good", source)] }),
+    );
     expect(out.typescript).toBe("6.0.3");
     expect(out.hostTypes).toBe("v0.2.0");
     expect(out.cached).toBe(false);
@@ -89,19 +91,45 @@ describe("生成した client と生成した server は、同じ model を話�
 
   it("型が通らなければ CompileFailed の instance で、diagnostics が型付きで読める", async () => {
     const err = await thrown(
-      client.send(new CompileCommand({ scripts: [script("bad", fixture("bad.ts"))] })),
+      client.send(
+        new CompileCommand({ variableNames: [], scripts: [script("bad", fixture("bad.ts"))] }),
+      ),
     );
     expect(err).toBeInstanceOf(CompileFailed);
     const failed = err as CompileFailed;
     expect(failed.$metadata.httpStatusCode).toBe(422);
     expect(failed.typescript).toBe("6.0.3");
     expect(failed.diagnostics?.map((d) => d.code)).toEqual(["TS2322", "TS2551"]);
+    expect(failed.missingVariables).toEqual([]);
+    expect(failed.declarations?.[0]).toMatchObject({ id: "bad", unreadable: false });
+  });
+
+  it("宣言と足りない名前が、model の形で読める", async () => {
+    const source =
+      'import { z } from "zod";\nconst { q } = defineParams(z.object({ q: z.string().max(9).describe("語") }));\nvoid q;\n';
+    const ok = await client.send(
+      new CompileCommand({ variableNames: ["q"], scripts: [script("needs-q", source)] }),
+    );
+    expect(ok.declarations?.[0]?.params?.[0]).toEqual({
+      name: "q",
+      kind: "variable",
+      required: true,
+      summary: "語",
+      schema: { type: "string", maxLength: 9 },
+    });
+    const err = await thrown(
+      client.send(new CompileCommand({ variableNames: [], scripts: [script("needs-q", source)] })),
+    );
+    expect(err).toBeInstanceOf(CompileFailed);
+    expect((err as CompileFailed).missingVariables).toEqual(["q"]);
+    expect((err as CompileFailed).diagnostics?.[0]?.code).toBe("BH0001");
   });
 
   it("sha256 が source と合わなければ SourceHashMismatch の instance", async () => {
     const err = await thrown(
       client.send(
         new CompileCommand({
+          variableNames: [],
           scripts: [{ ...script("good", fixture("good.ts")), sha256: "0".repeat(64) }],
         }),
       ),
@@ -116,6 +144,7 @@ describe("生成した client と生成した server は、同じ model を話�
     const err = await thrown(
       client.send(
         new CompileCommand({
+          variableNames: [],
           scripts: [{ id: "BAD_ID", version: 1, phase: "behavior", source: "x", sha256: "zz" }],
         }),
       ),

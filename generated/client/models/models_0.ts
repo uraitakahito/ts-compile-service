@@ -1,7 +1,7 @@
 // smithy-typescript generated code
 import type { DocumentType as __DocumentType } from "@smithy/types";
 
-import type { Phase } from "./enums";
+import type { ParamKind, Phase } from "./enums";
 
 /**
  * Describes one specific validation failure for an input member.
@@ -22,6 +22,62 @@ export interface ValidationExceptionField {
 }
 
 /**
+ * 値の JSON Schema。鍵はこの 4 つだけ
+ * @public
+ */
+export interface ParamSchema {
+  type: string | undefined;
+  minLength?: number | undefined;
+  maxLength?: number | undefined;
+  enum?: string[] | undefined;
+}
+
+/**
+ * 宣言された変数 1 つ。値は文字列だけ
+ * @public
+ */
+export interface DeclaredParam {
+  /**
+   * 変数の名前。台帳の schema と BrowserHive の ValueName と同じ式
+   * @public
+   */
+  name: string | undefined;
+
+  /**
+   * いつも variable。シークレットは defineParams で宣言しない
+   * @public
+   */
+  kind: ParamKind | undefined;
+
+  required: boolean | undefined;
+  /**
+   * .describe("…") の字
+   * @public
+   */
+  summary?: string | undefined;
+
+  /**
+   * 値の JSON Schema。鍵はこの 4 つだけ
+   * @public
+   */
+  schema: ParamSchema | undefined;
+}
+
+/**
+ * 1 本のスクリプトの変数の宣言
+ * @public
+ */
+export interface Declaration {
+  id: string | undefined;
+  params: DeclaredParam[] | undefined;
+  /**
+   * 宣言を読めなかった（BH0002）。params は当てにならない
+   * @public
+   */
+  unreadable: boolean | undefined;
+}
+
+/**
  * @public
  */
 export interface Diagnostic {
@@ -29,8 +85,9 @@ export interface Diagnostic {
   line?: number | undefined;
   col?: number | undefined;
   /**
-   * TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・
-   * BH0004（preload の import）・BH0006（classic script として読めない）
+   * TypeScript の誤りは TS2322 のような code。この service の決まりは BH0001（必須の変数が渡されていない）・
+   * BH0002（defineParams の宣言を読めない）・BH0003（import の形）・BH0004（preload の import か defineParams）・
+   * BH0005（__bh.vars の直読み）・BH0006（classic script として読めない）
    * @public
    */
   code: string | undefined;
@@ -66,6 +123,13 @@ export interface CompileInput {
    * @public
    */
   scripts: Script[] | undefined;
+
+  /**
+   * このクロールに渡された変数の名前。値は送らない。必須の宣言と照らし、足りなければ 422（BH0001）。
+   * JS は source だけで決まるので、cache の鍵には入らない
+   * @public
+   */
+  variableNames: string[] | undefined;
 }
 
 /**
@@ -96,6 +160,12 @@ export interface CompileOutput {
    * @public
    */
   cached: boolean | undefined;
+
+  /**
+   * スクリプトごとの変数の宣言（defineParams）。入力と同じ並び
+   * @public
+   */
+  declarations: Declaration[] | undefined;
 }
 
 /**

@@ -31,7 +31,7 @@ src='globalThis.__bh.report({ remaining: __bh.remainingMs });'
 sha=$(printf '%s' "$src" | shasum -a 256 | cut -d' ' -f1)
 
 curl -s -H 'content-type: application/json' http://127.0.0.1:8080/compile -d "$(cat <<EOF
-{"scripts":[{"id":"hello","version":1,"phase":"behavior",
+{"variableNames":[],"scripts":[{"id":"hello","version":1,"phase":"behavior",
   "source":$(printf '%s' "$src" | jq -Rs .),"sha256":"$sha","options":{}}]}
 EOF
 )"
@@ -54,7 +54,8 @@ EOF
       "sha256": "…",
       "options": {}
     }
-  ]
+  ],
+  "declarations": [{ "id": "hello", "params": [], "unreadable": false }]
 }
 ```
 

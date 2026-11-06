@@ -57,8 +57,9 @@ differs by a byte.
 To move to a newer capture-scripts, follow these steps. Never edit the copy. The source of truth is
 the other repository.
 
-1. Point `capture-scripts.pin` at the new tag and copy that tag's `types/host.d.ts` byte for byte.
-   `pnpm run host-types:check` compares it with the tag's raw file.
+1. Point `capture-scripts.pin` at the new tag and copy that tag's `types/host.d.ts` and
+   `tools/read-params.ts` (to `src/vendor/read-params.ts`) byte for byte. `pnpm run host-types:check`
+   compares them with the tag's raw files.
 2. Run `pnpm test`. If the types changed, bring the TypeScript in `test/fixtures/` and the
    expectations in `test/compile.test.ts` (the pinned sha256, the exact list of diagnostics) up to
    the new types, and add a fixture and a test that use them. Make the test one that goes red on the
@@ -94,6 +95,9 @@ generated server on port 0 and speaks HTTP to it, with the compiler replaced by 
 so it can assert that constraint violations never reach it. `test/service.test.ts` calls the
 operation directly with a cache of its own, to pin down what a cache hit answers: the JavaScript
 is reused, the names, versions, `phase` and `options` are the request's.
+
+`test/params.test.ts` covers `defineParams` and the check against the names given. The order test does
+the most: it asks the same TypeScript with, without and with the name, and looks at 200, 422, 200 and `cached`.
 
 `test/zod.test.ts` runs the assembled JavaScript in `node:vm`, to see how it behaves with no
 browser: it replaces `Function` with a Proxy that counts the calls, and looks at the completion value

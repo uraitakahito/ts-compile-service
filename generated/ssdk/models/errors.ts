@@ -2,7 +2,7 @@
 import type { ExceptionOptionType as __ExceptionOptionType } from "@smithy/core/client";
 import { ServiceException as __BaseException } from "@smithy/server-common";
 
-import { Diagnostic, ValidationExceptionField } from "./models_0";
+import { Declaration, Diagnostic, ValidationExceptionField } from "./models_0";
 
 /**
  * A standard error for input validation failures.
@@ -40,6 +40,18 @@ export class CompileFailed extends __BaseException {
   readonly $fault = "client" as const;
   typescript: string | undefined;
   diagnostics: Diagnostic[] | undefined;
+  /**
+   * スクリプトごとの変数の宣言。型が通らなくても読める物は読む
+   * @public
+   */
+  declarations: Declaration[] | undefined;
+
+  /**
+   * 必須の宣言のうち、variableNames に無かった名前
+   * @public
+   */
+  missingVariables: string[] | undefined;
+
   constructor(opts: __ExceptionOptionType<CompileFailed, __BaseException>) {
     super({
       name: "CompileFailed",
@@ -49,6 +61,8 @@ export class CompileFailed extends __BaseException {
     Object.setPrototypeOf(this, CompileFailed.prototype);
     this.typescript = opts.typescript;
     this.diagnostics = opts.diagnostics;
+    this.declarations = opts.declarations;
+    this.missingVariables = opts.missingVariables;
   }
 }
 

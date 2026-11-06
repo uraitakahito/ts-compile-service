@@ -45,16 +45,21 @@ describe("compile", () => {
     );
   });
 
-  it("受け皿の vars・secrets を読む TS が通り、undefined を見ない読み方は型で捕まる", () => {
-    // capture-scripts v0.6.0 の host.d.ts から。古い写し (opts・remainingMs・report だけ) だと
-    // vars が無い (TS2339) ので、この試験は写しがどの版かも言う
+  it("defineParams と受け皿の secrets を読む TS が通り、undefined を見ない読み方と __bh.vars は型で捕まる", () => {
+    // capture-scripts v0.11.0 の host.d.ts から。古い写しだと defineParams が無い (TS2304) ので、
+    // この試験は写しがどの版かも言う
     const out = js("with-values.ts");
-    expect(out).toContain("__bh.vars.query");
+    expect(out).toContain("globalThis.__bh.vars");
+    expect(out).not.toContain("defineParams(");
     expect(out).toContain("__bh.secrets.api_token");
     const [unguarded] = diagnosticsOf([
-      { id: "unguarded", source: "const n: number = globalThis.__bh.vars.query.length;\n" },
+      { id: "unguarded", source: "const n: number = globalThis.__bh.secrets.a.length;\n" },
     ]);
     expect(unguarded?.code).toBe("TS18048");
+    const direct = diagnosticsOf([
+      { id: "direct", source: "const q = globalThis.__bh.vars.query;\nvoid q;\n" },
+    ]).map((d) => d.code);
+    expect(direct).toContain("TS2339");
   });
 
   it("受け皿の log を使う TS が通り、id を渡す古い report は型で捕まる", () => {

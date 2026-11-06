@@ -25,6 +25,11 @@ operation Compile {
     input := {
         @required
         scripts: ScriptList
+
+        /// このクロールに渡された変数の名前。値は送らない。必須の宣言と照らし、足りなければ 422（BH0001）。
+        /// JS は source だけで決まるので、cache の鍵には入らない
+        @required
+        variableNames: ValueNameList
     }
 
     output := {
@@ -44,6 +49,10 @@ operation Compile {
         /// 同じ TS の並びを前にも変換していたか
         @required
         cached: Boolean
+
+        /// スクリプトごとの変数の宣言（defineParams）。入力と同じ並び
+        @required
+        declarations: DeclarationList
     }
 
     errors: [
@@ -81,6 +90,14 @@ structure CompileFailed {
 
     @required
     diagnostics: DiagnosticList
+
+    /// スクリプトごとの変数の宣言。型が通らなくても読める物は読む
+    @required
+    declarations: DeclarationList
+
+    /// 必須の宣言のうち、variableNames に無かった名前
+    @required
+    missingVariables: ValueNameList
 }
 
 /// 送られた sha256 が source と合わない。運ぶ途中で入れ替わった物は変換しない。
@@ -141,8 +158,9 @@ structure Diagnostic {
 
     col: Integer
 
-    /// TypeScript の誤りは TS2322 のような code。この service の決まりは BH0003（import の形）・
-    /// BH0004（preload の import）・BH0006（classic script として読めない）
+    /// TypeScript の誤りは TS2322 のような code。この service の決まりは BH0001（必須の変数が渡されていない）・
+    /// BH0002（defineParams の宣言を読めない）・BH0003（import の形）・BH0004（preload の import か defineParams）・
+    /// BH0005（__bh.vars の直読み）・BH0006（classic script として読めない）
     @required
     code: String
 
@@ -152,4 +170,75 @@ structure Diagnostic {
 
 list DiagnosticList {
     member: Diagnostic
+}
+
+/// 変数の名前。台帳の schema と BrowserHive の ValueName と同じ式
+@length(min: 1, max: 64)
+@pattern("^[a-z][a-z0-9_]*$")
+string ValueName
+
+/// 台帳の 1 クロールの値の上限と同じ
+@length(min: 0, max: 32)
+list ValueNameList {
+    member: ValueName
+}
+
+/// 1 本のスクリプトの変数の宣言
+structure Declaration {
+    @required
+    id: ScriptId
+
+    @required
+    params: DeclaredParamList
+
+    /// 宣言を読めなかった（BH0002）。params は当てにならない
+    @required
+    unreadable: Boolean
+}
+
+list DeclarationList {
+    member: Declaration
+}
+
+/// 宣言された変数 1 つ。値は文字列だけ
+structure DeclaredParam {
+    @required
+    name: ValueName
+
+    /// いつも variable。シークレットは defineParams で宣言しない
+    @required
+    kind: ParamKind
+
+    @required
+    required: Boolean
+
+    /// .describe("…") の字
+    summary: String
+
+    @required
+    schema: ParamSchema
+}
+
+list DeclaredParamList {
+    member: DeclaredParam
+}
+
+enum ParamKind {
+    VARIABLE = "variable"
+}
+
+/// 値の JSON Schema。鍵はこの 4 つだけ
+structure ParamSchema {
+    @required
+    type: String
+
+    minLength: Integer
+
+    maxLength: Integer
+
+    enum: ParamEnum
+}
+
+list ParamEnum {
+    member: String
 }

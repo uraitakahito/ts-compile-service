@@ -62,7 +62,7 @@ describe("生成した server に本体を差す", () => {
 
   it("型が通る TS は 200 で、source と sha256 だけ JS になる。同じ並びの 2 回目は cache", async () => {
     const before = compileCalls;
-    const first = await post({ scripts: [script("good", fixture("good.ts"))] });
+    const first = await post({ variableNames: [], scripts: [script("good", fixture("good.ts"))] });
     expect(first.status).toBe(200);
     const body = (await first.json()) as {
       typescript: string;
@@ -78,7 +78,7 @@ describe("生成した server に本体を差す", () => {
     expect(body.scripts[0]?.sha256).toBe(sha256(body.scripts[0]!.source));
     expect(compileCalls).toBe(before + 1);
 
-    const second = await post({ scripts: [script("good", fixture("good.ts"))] });
+    const second = await post({ variableNames: [], scripts: [script("good", fixture("good.ts"))] });
     expect(((await second.json()) as { cached: boolean }).cached).toBe(true);
     expect(compileCalls).toBe(before + 1);
   });
@@ -86,6 +86,7 @@ describe("生成した server に本体を差す", () => {
   it("model の制約に外れた入力は、本体に届く前に 400 になる", async () => {
     const before = compileCalls;
     const res = await post({
+      variableNames: [],
       scripts: [{ id: "BAD_ID", version: 1, phase: "behavior", source: "x", sha256: "zz" }],
     });
     expect(res.status).toBe(400);
@@ -99,24 +100,62 @@ describe("生成した server に本体を差す", () => {
     // 台帳が「何も走らせない」(scriptIds: []) と決めたクロールの段。変換する物は無いが、
     // 報告には typescript と hostTypes が要る。本体の経路は空をそのまま通す (特別扱いは無い)
     const before = compileCalls;
-    const first = await post({ scripts: [] });
+    const first = await post({ variableNames: [], scripts: [] });
     expect(first.status).toBe(200);
     expect(await first.json()).toEqual({
       typescript: "6.0.3",
       hostTypes: "v0.2.0",
       cached: false,
       scripts: [],
+      declarations: [],
     });
     expect(compileCalls).toBe(before + 1);
 
-    const second = await post({ scripts: [] });
+    const second = await post({ variableNames: [], scripts: [] });
     expect(((await second.json()) as { cached: boolean }).cached).toBe(true);
     expect(compileCalls).toBe(before + 1);
+  });
+
+  it("variableNames が無ければ 400 で、本体に届かない", async () => {
+    const before = compileCalls;
+    const res = await post({ scripts: [script("good", fixture("good.ts"))] });
+    expect(res.status).toBe(400);
+    expect(compileCalls).toBe(before);
+  });
+
+  it("variableNames の綴りが違えば 400 で、本体に届かない", async () => {
+    const before = compileCalls;
+    const res = await post({
+      variableNames: ["Query"],
+      scripts: [script("good", fixture("good.ts"))],
+    });
+    expect(res.status).toBe(400);
+    expect(compileCalls).toBe(before);
+  });
+
+  it("必須の変数が足りなければ 422 で、足りない名前と宣言が本文に載る", async () => {
+    const source =
+      'import { z } from "zod";\nconst { q } = defineParams(z.object({ q: z.string() }));\nvoid q;\n';
+    const res = await post({ variableNames: [], scripts: [script("needs-q", source)] });
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as {
+      diagnostics: { code: string; file: string; line: number }[];
+      missingVariables: string[];
+      declarations: { id: string; unreadable: boolean; params: { name: string }[] }[];
+    };
+    expect(body.diagnostics[0]).toMatchObject({ code: "BH0001", file: "needs-q.ts", line: 2 });
+    expect(body.missingVariables).toEqual(["q"]);
+    expect(body.declarations[0]).toMatchObject({
+      id: "needs-q",
+      unreadable: false,
+      params: [{ name: "q" }],
+    });
   });
 
   it("sha256 が source と合わなければ 409。変換しない", async () => {
     const before = compileCalls;
     const res = await post({
+      variableNames: [],
       scripts: [{ ...script("good", fixture("good.ts")), sha256: "0".repeat(64) }],
     });
     expect(res.status).toBe(409);
@@ -127,6 +166,7 @@ describe("生成した server に本体を差す", () => {
 
   it("型が通らなければ 422 と diagnostics。1 本も返さない", async () => {
     const res = await post({
+      variableNames: [],
       scripts: [script("good", fixture("good.ts")), script("bad", fixture("bad.ts"))],
     });
     expect(res.status).toBe(422);

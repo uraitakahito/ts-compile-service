@@ -25,9 +25,12 @@ const script = (
 describe("cache に当たっても、答えはいまの要求の物", () => {
   it("同じ TS を phase と名前を変えて頼むと、その phase と名前で返る", async () => {
     const service = fresh();
-    await service.Compile({ scripts: [script("close-banner", "behavior", SOURCE)] }, {});
+    await service.Compile(
+      { variableNames: [], scripts: [script("close-banner", "behavior", SOURCE)] },
+      {},
+    );
     const again = await service.Compile(
-      { scripts: [script("dismiss-consent", "preload", SOURCE)] },
+      { variableNames: [], scripts: [script("dismiss-consent", "preload", SOURCE)] },
       {},
     );
     // 対照: cache を通った。通らずに本体が変換し直したなら、この試験は何も言っていない
@@ -42,9 +45,15 @@ describe("cache に当たっても、答えはいまの要求の物", () => {
   it("同じ TS で options だけ違う版は、その版と options で返る", async () => {
     // 台帳の `scripts add --options` が作る形: 中身は同じで、版と渡す値だけが違う
     const service = fresh();
-    await service.Compile({ scripts: [script("autoscroll", "behavior", SOURCE)] }, {});
+    await service.Compile(
+      { variableNames: [], scripts: [script("autoscroll", "behavior", SOURCE)] },
+      {},
+    );
     const again = await service.Compile(
-      { scripts: [script("autoscroll", "behavior", SOURCE, 2, { maxSteps: 60 })] },
+      {
+        variableNames: [],
+        scripts: [script("autoscroll", "behavior", SOURCE, 2, { maxSteps: 60 })],
+      },
       {},
     );
     expect(again.cached).toBe(true);
@@ -58,11 +67,11 @@ describe("cache に当たっても、答えはいまの要求の物", () => {
   it("cache に当たっても、JS は 1 回目と同じバイト列で、sha256 はその JS の物", async () => {
     const service = fresh();
     const first = await service.Compile(
-      { scripts: [script("close-banner", "behavior", SOURCE)] },
+      { variableNames: [], scripts: [script("close-banner", "behavior", SOURCE)] },
       {},
     );
     const again = await service.Compile(
-      { scripts: [script("dismiss-consent", "preload", SOURCE)] },
+      { variableNames: [], scripts: [script("dismiss-consent", "preload", SOURCE)] },
       {},
     );
     expect(again.cached).toBe(true);
