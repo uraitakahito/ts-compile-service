@@ -1,6 +1,6 @@
 ---
 title: ts-compile-service
-description: TypeScript を型検査して JavaScript にする、クローラのための常駐サービス。全部が通らなければ 1 本も返さない
+description: TypeScript を型検査して JavaScript にする、Web Capture のための常駐サービス。全部が通らなければ 1 本も返さない
 ---
 
 ts-compile-service は仕事が 1 つだけの小さな HTTP サービスです。
