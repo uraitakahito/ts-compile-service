@@ -52,7 +52,7 @@ jobs:
         run: npm ci --prefix docs-site
 
       # site:build ではなく site:check。.md のページは `astro build` が描画の例外を握り潰して
-      # 緑になる (crawler の他の repo で実測) ので、check-doc-refs が無いと壊れたページが公開される
+      # 緑になる (Web Capture の他の repo で実測) ので、check-doc-refs が無いと壊れたページが公開される
       - name: 建てて、docs と repo のずれを見る
         run: pnpm run site:check
 

@@ -1,6 +1,6 @@
 ---
 title: ts-compile-service
-description: A resident service that type-checks TypeScript and emits JavaScript for the crawler — nothing comes back unless every script passes
+description: A resident service that type-checks TypeScript and emits JavaScript for Web Capture — nothing comes back unless every script passes
 ---
 
 ts-compile-service is a small HTTP service with one job: take the TypeScript that
