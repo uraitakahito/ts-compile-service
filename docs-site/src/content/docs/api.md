@@ -65,7 +65,7 @@ when the answer comes from memory: they are always the request's own.
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.10.0",
+  "hostTypes": "v0.13.0",
   "cached": false,
   "scripts": ["…"],
   "declarations": [
@@ -157,7 +157,7 @@ A `code` starting with `TS` comes from TypeScript. One starting with `BH` is a r
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.10.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.13.0" }
 ```
 
 `hostTypes` is the capture-scripts tag whose `types/host.d.ts` the service compiles against (the

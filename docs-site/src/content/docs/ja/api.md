@@ -64,7 +64,7 @@ runtime の衝突になるのと同じです。[Zod を読む](#zod-を読む)�
 ```json
 {
   "typescript": "6.0.3",
-  "hostTypes": "v0.10.0",
+  "hostTypes": "v0.13.0",
   "cached": false,
   "scripts": ["…"],
   "declarations": [
@@ -152,7 +152,7 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 ## `GET /healthz`
 
 ```json
-{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.10.0" }
+{ "ok": true, "typescript": "6.0.3", "hostTypes": "v0.13.0" }
 ```
 
 `hostTypes` は、サービスが compile の相手にする `types/host.d.ts` が capture-scripts のどの tag の物か
