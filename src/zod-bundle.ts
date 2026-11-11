@@ -170,7 +170,7 @@ const bundles = new BoundedCache<string>(BUNDLE_CACHE_MAX);
  * Zod の部分だけの束。`jitless` は入口で立てる —— 立てないと Zod は速い検査を `new Function` で作ろうとし、
  * `script-src` が eval を禁じるページでは投げるうえ、相手のサイトへ違反の報告が飛ぶ。
  *
- * 同じ入力は同じバイト列 (名前は並べ替えてある)。台帳は段ごとの JS が同じかを sha256 で見るので、変わると困る。
+ * 同じ入力は同じバイト列 (名前は並べ替えてある)。capture-ledger は段ごとの JS が同じかを sha256 で見るので、変わると困る。
  */
 const bundleZod = (entry: string, names: readonly string[] | undefined): string => {
   const key = `${entry}|${names?.join(",") ?? "*"}`;

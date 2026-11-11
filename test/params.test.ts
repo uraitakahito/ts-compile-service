@@ -135,7 +135,7 @@ describe("必須の変数が渡されているか", () => {
     expect(got.diagnostics.map((d) => d.code)).toEqual(["BH0001"]);
   });
 
-  it("型の誤りと一緒でも、足りない名前を言う —— 台帳は行を立てる前に断れる", async () => {
+  it("型の誤りと一緒でも、足りない名前を言う —— capture-ledger は行を立てる前に断れる", async () => {
     const got = await failure(
       ask(
         fresh(),
@@ -146,7 +146,7 @@ describe("必須の変数が渡されているか", () => {
     expect(got.missingVariables).toEqual(["query"]);
   });
 
-  it("2 本が同じ名前を別の形で宣言していても、ここでは断らない (断るのは台帳)", async () => {
+  it("2 本が同じ名前を別の形で宣言していても、ここでは断らない (断るのは capture-ledger)", async () => {
     const got = await fresh().Compile(
       {
         variableNames: ["q"],
