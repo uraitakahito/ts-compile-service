@@ -1,7 +1,7 @@
 name: site
 
 # docs-site/ (Astro/Starlight) のずれの検査。PR が、無い物を指す docs や
-# model と違う口の表を merge できないように。
+# model と違うエンドポイントの表を merge できないように。
 #
 # 走らせるのは `site:check` —— build **と** scripts/check-doc-refs.mjs。`site:build` だけでは足りない:
 # .md のページは `astro build` が描画の例外を握り潰して exit 0 になる (Web Capture の他の repo で実測)。

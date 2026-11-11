@@ -129,7 +129,7 @@ Starlight の loader が描画の例外を握り潰して exit 0 になるから
 - 英語のページには `ja/` に同じ file 名の日本語のページが在り、逆も同じ。
 - 本文の `[link](/page/)` は、その locale に在るページを指す。
 - code span で書いた repo の path は実在する。
-- [API](/api/) のページの口の表は、`generated/openapi.json` の path・method・status とぴったり同じ。
+- [API](/api/) のページのエンドポイントの表は、`generated/openapi.json` の path・method・status とぴったり同じ。
 
 ページは `docs-site/src/content/docs/`（英語）と `docs-site/src/content/docs/ja/`（日本語）に在ります。
 両方を一緒に直すこと。訳の無いページは黙って fallback するのではなく、検査が赤になります。

@@ -12,7 +12,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "ts-compile-service Docs",
-      // API の表の中の code (口と status の並び) を折り返さない
+      // API の表の中の code (エンドポイントと status の並び) を折り返さない
       customCss: ["./src/styles/tables.css"],
       // 英語が根 (接頭辞無し)、日本語は /ja/ の下。Web Capture の他の repo と同じ形
       defaultLocale: "root",

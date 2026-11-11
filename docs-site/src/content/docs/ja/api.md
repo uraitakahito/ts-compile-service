@@ -4,12 +4,12 @@ description: 2 つの操作と、それぞれが返しうる全 status、request
 ---
 
 interface は `model/main.smithy` に 1 回だけ定義されていて、このページは全部その読み下しです。生成した
-OpenAPI（`generated/openapi.json`）が機械向けの形です。下の口の表は CI でそれと突き合わされるので、
+OpenAPI（`generated/openapi.json`）が機械向けの形です。下のエンドポイント（HTTP の method と path の組）の表は CI でそれと突き合わされるので、
 片方にしか無い status は pull request を落とします。
 
-## 口
+## エンドポイント
 
-| 口              | status                | すること                                                              |
+| エンドポイント  | status                | すること                                                              |
 | --------------- | --------------------- | --------------------------------------------------------------------- |
 | `POST /compile` | 200 · 400 · 409 · 422 | その段のスクリプトを 1 つの program として型検査し、JavaScript を返す |
 | `GET /healthz`  | 200 · 400             | 起きているか。どの compiler と受け皿の型で                            |

@@ -86,7 +86,7 @@ export const createService = ({
 
     // **使い回すのは JS だけ。** id・版・phase・options は、いつもいまの要求から付ける。出てくる JS は
     // source だけで決まり、ファイル名にしている id には依らない。答えごと覚えると、同じ TS を別の名前や
-    // 別の phase で頼んだ要求に、前の要求の物が返る（phase だけ違えば、違う口で黙って走る）
+    // 別の phase で頼んだ要求に、前の要求の物が返る（phase だけ違えば、違う phase で黙って走る）
     const answer = (js: readonly string[], cached: boolean): CompileOutput => ({
       typescript,
       hostTypes,
