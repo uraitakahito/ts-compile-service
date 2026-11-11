@@ -9,7 +9,7 @@ name: docs
 # PR は site.yaml の読むだけの検査で見る —— fork の branch をここで建てると、
 # 何を公開するかを fork が選べてしまう。
 #
-# job は 1 つ。OpenAPI の参照は Astro の外で建てない (口の表は docs の中で、
+# job は 1 つ。OpenAPI の参照は Astro の外で建てない (エンドポイントの表は docs の中で、
 # scripts/check-doc-refs.mjs が generated/openapi.json と突き合わせる)。
 
 on:

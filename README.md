@@ -9,7 +9,7 @@ JS を受け取る。**型が通らなければ 1 本も返さず、段ごと落
 
 ## Documentation
 
-使い方（image の起こし方・`curl` で 1 本変換・env）、API（2 つの口と全 status、request と response の形）、
+使い方（image の起こし方・`curl` で 1 本変換・env）、API（2 つのエンドポイントと全 status、request と response の形）、
 直し方（model → 生成 → check、image、docs）は docs サイトに:
 
 - **English** — <https://uraitakahito.github.io/ts-compile-service/>

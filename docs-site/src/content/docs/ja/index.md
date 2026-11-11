@@ -51,5 +51,5 @@ JSON の serde・エラーの status は、model から `generated/ssdk` に**�
 ## 次に読む物
 
 - **[クイックスタート](/quickstart/)** — image を起こして、`curl` で 1 本変換する。
-- **[API](/api/)** — 2 つの口、返しうる全 status、request と response の形。
+- **[API](/api/)** — 2 つのエンドポイント、返しうる全 status、request と response の形。
 - **[開発](/development/)** — model から生成し直す、検査を走らせる、image を建てる。
