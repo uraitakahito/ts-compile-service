@@ -85,7 +85,7 @@ const resolveModule = (name: string, containingFile: string): ts.ResolvedModuleF
 
 /**
  * ページで走る形にする。受ける形の `import` を消し (Zod は組み上げで前に置く)、`defineParams(…)` を
- * `globalThis.__bh.vars` に置き換える。値の検査は台帳が始める前に済ませているので、ページでは読むだけ。
+ * `globalThis.__bh.vars` に置き換える。値の検査は capture-ledger が始める前に済ませているので、ページでは読むだけ。
  */
 const toPageForm: ts.TransformerFactory<ts.SourceFile> = (context) => (source) => {
   const { factory } = context;

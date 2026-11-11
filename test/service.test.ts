@@ -43,7 +43,7 @@ describe("cache に当たっても、答えはいまの要求の物", () => {
   });
 
   it("同じ TS で options だけ違う版は、その版と options で返る", async () => {
-    // 台帳の `scripts add --options` が作る形: 中身は同じで、版と渡す値だけが違う
+    // capture-ledger の `scripts add --options` が作る形: 中身は同じで、版と渡す値だけが違う
     const service = fresh();
     await service.Compile(
       { variableNames: [], scripts: [script("autoscroll", "behavior", SOURCE)] },

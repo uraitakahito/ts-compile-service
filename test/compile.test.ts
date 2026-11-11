@@ -32,7 +32,7 @@ describe("compile", () => {
   });
 
   it("0 本なら診断も出力も無い (受け皿の型だけの program)", () => {
-    // 台帳の `scriptIds: []`。空を「通った」と言う —— 診断ではなく、空の outputs
+    // capture-ledger の `scriptIds: []`。空を「通った」と言う —— 診断ではなく、空の outputs
     const r = compile([]);
     expect("outputs" in r ? r.outputs.size : r.diagnostics).toBe(0);
   });

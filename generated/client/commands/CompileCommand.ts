@@ -23,7 +23,7 @@ export interface CompileCommandInput extends CompileInput {}
 export interface CompileCommandOutput extends CompileOutput, __MetadataBearer {}
 
 /**
- * 台帳が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。
+ * capture-ledger が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript

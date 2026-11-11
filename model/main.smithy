@@ -19,7 +19,7 @@ service TsCompile {
     ]
 }
 
-/// 台帳が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。
+/// capture-ledger が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。
 @http(method: "POST", uri: "/compile", code: 200)
 operation Compile {
     input := {
@@ -111,7 +111,7 @@ structure SourceHashMismatch {
     id: ScriptId
 }
 
-/// スクリプト 1 本。台帳が送る形そのもの。
+/// スクリプト 1 本。capture-ledger が送る形そのもの。
 structure Script {
     @required
     id: ScriptId
@@ -132,7 +132,7 @@ structure Script {
     options: Document
 }
 
-/// 0 本も通す。台帳は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——
+/// 0 本も通す。capture-ledger は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——
 /// それを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）
 @length(min: 0, max: 100)
 list ScriptList {
@@ -172,12 +172,12 @@ list DiagnosticList {
     member: Diagnostic
 }
 
-/// 変数の名前。台帳の schema と BrowserHive の ValueName と同じ式
+/// 変数の名前。capture-ledger の schema と BrowserHive の ValueName と同じ式
 @length(min: 1, max: 64)
 @pattern("^[a-z][a-z0-9_]*$")
 string ValueName
 
-/// 台帳の 1 クロールの値の上限と同じ
+/// capture-ledger の 1 クロールの値の上限と同じ
 @length(min: 0, max: 32)
 list ValueNameList {
     member: ValueName

@@ -47,7 +47,7 @@ OpenAPI（`generated/openapi.json`）が機械向けの形です。下のエン�
 | `version`       | 整数                                | 触らずに返す                                                                                     |
 | `phase`         | `preload` か `behavior`             | 触らずに返す                                                                                     |
 | `source`        | 文字列                              | TypeScript                                                                                       |
-| `sha256`        | `^[0-9a-f]{64}$`                    | `source` の UTF-8 のバイト列の sha256。台帳が打った物                                            |
+| `sha256`        | `^[0-9a-f]{64}$`                    | `source` の UTF-8 のバイト列の sha256。capture-ledger が打った物                                 |
 | `options`       | 任意の JSON document。省略可        | 触らずに返す                                                                                     |
 
 スクリプトは全部を**1 つの program**として compile します。ページの中では global を共有する（どれも
@@ -111,12 +111,12 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 
 ### 409 SourceHashMismatch
 
-`sha256` が `source` と合わない。サービスは保証できない物を変換しません。台帳とここの間で変わった
+`sha256` が `source` と合わない。サービスは保証できない物を変換しません。capture-ledger とここの間で変わった
 スクリプトは、新しい hash で emit されるのではなく断られます。TCP が守っているのになぜ照合するのかは
 [なぜ照合するのか](/#なぜ照合するのか) を参照。
 
 ```json
-{ "message": "autoscroll: sha256 が台帳の約束と違う", "id": "autoscroll" }
+{ "message": "autoscroll: sha256 が capture-ledger の約束と違う", "id": "autoscroll" }
 ```
 
 ### 422 CompileFailed
@@ -135,7 +135,7 @@ request が model の制約を破った: 大文字の入った id、hex 64 文�
 ```
 
 位置の無い診断では `file`・`line`・`col` が欠けます。`declarations` は型が通らなくても読める物を読み、
-`missingVariables` は必須の宣言のうち `variableNames` に無かった名前です。台帳はこの 2 つで、クロールの行を
+`missingVariables` は必須の宣言のうち `variableNames` に無かった名前です。capture-ledger はこの 2 つで、クロールの行を
 立てる前に断れます。
 
 `code` は TypeScript の誤りが `TS` で始まり、この service の決まりが `BH` で始まります。

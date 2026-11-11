@@ -19,7 +19,7 @@ JS を受け取る。**型が通らなければ 1 本も返さず、段ごと落
 
 - [capture-scripts](https://github.com/uraitakahito/capture-scripts) — 変換される TS と、受け皿の型の出どころ
 - [capture-scheduler](https://github.com/uraitakahito/capture-scheduler) — flow の `compile` の段がここを呼ぶ
-- [capture-ledger](https://github.com/uraitakahito/capture-ledger) — TS のスクリプトを持つ台帳。sha256 は TS のバイト列に打つ
+- [capture-ledger](https://github.com/uraitakahito/capture-ledger) — TS のスクリプトを登録して持つ。sha256 は TS のバイト列に打つ
 - [BrowserHive](https://github.com/uraitakahito/browserhive) — 返した JS を sha256 で照合して評価する
 
 ## License

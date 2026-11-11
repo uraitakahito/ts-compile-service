@@ -97,7 +97,7 @@ describe("生成した server に本体を差す", () => {
   });
 
   it("空の scripts は 200 で何もしない —— 何で・何に向けて変換するかは付く。2 回目は cache", async () => {
-    // 台帳が「何も走らせない」(scriptIds: []) と決めたクロールの段。変換する物は無いが、
+    // capture-ledger が「何も走らせない」(scriptIds: []) と決めたクロールの段。変換する物は無いが、
     // 報告には typescript と hostTypes が要る。本体の経路は空をそのまま通す (特別扱いは無い)
     const before = compileCalls;
     const first = await post({ variableNames: [], scripts: [] });
@@ -160,7 +160,10 @@ describe("生成した server に本体を差す", () => {
     });
     expect(res.status).toBe(409);
     expect(res.headers.get("x-amzn-errortype")).toBe("SourceHashMismatch");
-    expect(await res.json()).toEqual({ id: "good", message: "good: sha256 が台帳の約束と違う" });
+    expect(await res.json()).toEqual({
+      id: "good",
+      message: "good: sha256 が capture-ledger の約束と違う",
+    });
     expect(compileCalls).toBe(before);
   });
 

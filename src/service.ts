@@ -55,10 +55,13 @@ export const createService = ({
       sha256: present(s.sha256, "sha256"),
     }));
 
-    // 台帳の約束を先に確かめる。運ぶ途中で入れ替わった物を、変換して新しい hash を付けて通さない
+    // capture-ledger の約束を先に確かめる。運ぶ途中で入れ替わった物を、変換して新しい hash を付けて通さない
     for (const s of scripts) {
       if (sha256(s.source) !== s.sha256) {
-        throw new SourceHashMismatch({ message: `${s.id}: sha256 が台帳の約束と違う`, id: s.id });
+        throw new SourceHashMismatch({
+          message: `${s.id}: sha256 が capture-ledger の約束と違う`,
+          id: s.id,
+        });
       }
     }
 

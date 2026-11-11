@@ -133,7 +133,7 @@ export namespace ParamSchema {
  */
 export interface DeclaredParam {
   /**
-   * 変数の名前。台帳の schema と BrowserHive の ValueName と同じ式
+   * 変数の名前。capture-ledger の schema と BrowserHive の ValueName と同じ式
    * @public
    */
   name: string | undefined;
@@ -362,7 +362,7 @@ export namespace Diagnostic {
 }
 
 /**
- * スクリプト 1 本。台帳が送る形そのもの。
+ * スクリプト 1 本。capture-ledger が送る形そのもの。
  * @public
  */
 export interface Script {
@@ -459,7 +459,7 @@ export namespace Script {
  */
 export interface CompileInput {
   /**
-   * 0 本も通す。台帳は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——
+   * 0 本も通す。capture-ledger は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——
    * それを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）
    * @public
    */

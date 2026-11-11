@@ -8,7 +8,7 @@
     "paths": {
         "/compile": {
             "post": {
-                "description": "台帳が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。",
+                "description": "capture-ledger が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。",
                 "operationId": "Compile",
                 "requestBody": {
                     "content": {
@@ -125,7 +125,7 @@
                             "maxLength": 64,
                             "minLength": 1,
                             "pattern": "^[a-z][a-z0-9_]*$",
-                            "description": "変数の名前。台帳の schema と BrowserHive の ValueName と同じ式"
+                            "description": "変数の名前。capture-ledger の schema と BrowserHive の ValueName と同じ式"
                         },
                         "maxItems": 32,
                         "minItems": 0,
@@ -150,7 +150,7 @@
                         },
                         "maxItems": 100,
                         "minItems": 0,
-                        "description": "0 本も通す。台帳は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——\nそれを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）"
+                        "description": "0 本も通す。capture-ledger は `scriptIds: []` を「何も走らせない」という意思として受理し、空でも段に載せる ——\nそれを断るのは model の見落とし。空なら何も変換せず、200 で `scripts: []` を返す（typescript と hostTypes は付く）"
                     },
                     "variableNames": {
                         "type": "array",
@@ -159,7 +159,7 @@
                             "maxLength": 64,
                             "minLength": 1,
                             "pattern": "^[a-z][a-z0-9_]*$",
-                            "description": "変数の名前。台帳の schema と BrowserHive の ValueName と同じ式"
+                            "description": "変数の名前。capture-ledger の schema と BrowserHive の ValueName と同じ式"
                         },
                         "maxItems": 32,
                         "minItems": 0,
@@ -247,7 +247,7 @@
                         "maxLength": 64,
                         "minLength": 1,
                         "pattern": "^[a-z][a-z0-9_]*$",
-                        "description": "変数の名前。台帳の schema と BrowserHive の ValueName と同じ式"
+                        "description": "変数の名前。capture-ledger の schema と BrowserHive の ValueName と同じ式"
                     },
                     "kind": {
                         "$ref": "#/components/schemas/ParamKind"
@@ -354,7 +354,7 @@
             },
             "Script": {
                 "type": "object",
-                "description": "スクリプト 1 本。台帳が送る形そのもの。",
+                "description": "スクリプト 1 本。capture-ledger が送る形そのもの。",
                 "properties": {
                     "id": {
                         "type": "string",

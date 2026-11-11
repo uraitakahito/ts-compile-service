@@ -120,7 +120,7 @@ check exists at all, when TCP already protects the bytes: see
 [Why verify at every hop](/#why-verify-at-every-hop).
 
 ```json
-{ "message": "autoscroll: sha256 が台帳の約束と違う", "id": "autoscroll" }
+{ "message": "autoscroll: sha256 が capture-ledger の約束と違う", "id": "autoscroll" }
 ```
 
 ### 422 CompileFailed

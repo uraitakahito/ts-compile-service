@@ -19,7 +19,7 @@ JavaScript を返します。**1 本でも型が通らなければ何も返さ�
    その hash を打つ。
 4. **BrowserHive** が新しい hash 付きの JavaScript を受け取り、照合してから、ページの中で評価する。
 
-hash は鎖になっています。台帳の hash は TypeScript に、サービスの hash は JavaScript に打たれ、
+hash は鎖になっています。capture-ledger の hash は TypeScript に、サービスの hash は JavaScript に打たれ、
 受け取る側はそれぞれ照合してから動きます。運ぶ途中で変わったスクリプトは、変換されずに断られます（409）。
 
 ### なぜ照合するのか
@@ -27,7 +27,7 @@ hash は鎖になっています。台帳の hash は TypeScript に、サービ
 :::note[古典的な議論と同じ形（end-to-end argument, 1984）]
 信頼できるリンクだけで組んだネットワークでも、ファイルを送る program は最後に checksum を比べる。途中の host の
 ディスクやメモリで化けた物を、リンクの検査は見つけられないから。「正しさは、それが何であるかを知っている
-端点でしか確かめられない」。script にとっての端点は、バイト列を生む台帳と、それを走らせる BrowserHive です。
+端点でしか確かめられない」。script にとっての端点は、バイト列を生む capture-ledger と、それを走らせる BrowserHive です。
 :::
 
 ## なぜ transpile の一段ではなくサービスなのか

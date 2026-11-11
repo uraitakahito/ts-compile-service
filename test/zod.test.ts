@@ -175,7 +175,7 @@ describe("JS の大きさとバイト列", () => {
   });
 
   it("同じ TS からは同じバイト列が出る (前の測定で固定した sha256)", () => {
-    // 台帳は段ごとの JS が同じかを sha256 で見る (mergeCompiled)。Zod か esbuild の版を上げると
+    // capture-ledger は段ごとの JS が同じかを sha256 で見る (mergeCompiled)。Zod か esbuild の版を上げると
     // ここが赤くなる。それが狙いで、JS が変わったことを知ってから値を直す
     expect(sha256(jsOf(fixture("with-zod.ts"), "with-zod"))).toBe(
       "50d63075911c37d55133d082ed030b4a90f3e444cc3a3e8554d218093639562b",
