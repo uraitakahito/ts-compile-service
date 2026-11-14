@@ -213,15 +213,15 @@ const { query } = defineParams(z.object({ query: z.string().min(1).describe("法
 option は capture-scripts の `tsconfig.json` と同じにしてあります。向こうの CI で緑のスクリプトはここでも
 緑でなければならず、逆も同じだからです。
 
-| option               | 値                                                                                                        |
-| -------------------- | --------------------------------------------------------------------------------------------------------- |
-| `target` / `module`  | ES2023 / ESNext                                                                                           |
-| `moduleResolution`   | Bundler。スクリプトから解決するのは `zod` と `zod/mini` だけ                                              |
-| `skipLibCheck`       | on: Zod の d.ts を検査しない（3 本で 556 ms が 117 ms に）                                                |
-| `lib`                | ES2023 と DOM                                                                                             |
-| `strict`             | on                                                                                                        |
-| `erasableSyntaxOnly` | on: enum・namespace・parameter property は使えない。JavaScript は TypeScript から型を引いただけの物になる |
-| `removeComments`     | off: コメントは archive まで残る                                                                          |
+| option               | 値                                                                                                                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `target` / `module`  | ES2023 / ESNext                                                                                                                                                                |
+| `moduleResolution`   | Bundler。スクリプトから解決するのは `zod` と `zod/mini` だけ                                                                                                                   |
+| `skipLibCheck`       | on: Zod の d.ts を検査しない（3 本で 556 ms が 117 ms に）                                                                                                                     |
+| `lib`                | ES2023 と DOM                                                                                                                                                                  |
+| `strict`             | on                                                                                                                                                                             |
+| `erasableSyntaxOnly` | on: enum・namespace・parameter property は使えない。型を消すほかにコードは足されないが、JavaScript は tsc が印字し直すので、字下げ・空白・大きさは TypeScript と同じにならない |
+| `removeComments`     | off: コメントは archive まで残る                                                                                                                                               |
 
 emit した JavaScript は `"use strict";` で始まります。compiler が module でない file に必ず付ける物で、
 [Zod を読む](#zod-を読む)スクリプトは組み上げのときに付けます。

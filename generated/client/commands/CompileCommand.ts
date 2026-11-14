@@ -23,7 +23,9 @@ export interface CompileCommandInput extends CompileInput {}
 export interface CompileCommandOutput extends CompileOutput, __MetadataBearer {}
 
 /**
- * capture-ledger が送った TS を、BrowserHive が評価する JS にする。1 段に 1 回。
+ * capture-ledger が送った TS を、BrowserHive が評価する JS にする。呼ぶのは capture-scheduler の flow の段ごとの
+ * compile_scripts と、capture-ledger（クロールを始める前の POST /api/crawls・書きかけの TS を見る
+ * POST /api/scripts/check・落ちたクロールの誤りの読み直しと直し方を訊くとき）。
  * @example
  * Use a bare-bones client and the command you need to make an API call.
  * ```javascript
