@@ -3,7 +3,8 @@
  *
  * 鍵は TS の sha256 の並び —— 内容が同じなら鍵も同じで、クロールは段ごとに同じスクリプトを送るので、
  * 2 段目からは型検査も emit も走らない。上限は memory の計算ではなく「無限に増えない」ための物。
- * 1 件はその段のスクリプトぶんの JS (数 KB)。
+ * 1 件は 1 回の要求に載ったスクリプトぶんの JS。`import` の無いスクリプトは 1 本で数 KB だが、Zod を読む
+ * スクリプトは束ねた Zod を含み、1 本で 15〜390 KB になる (`zod-bundle.ts`)。
  */
 export class BoundedCache<V> {
   private readonly map = new Map<string, V>();

@@ -225,15 +225,15 @@ const { query } = defineParams(z.object({ query: z.string().min(1).describe("法
 The options are the same as capture-scripts' `tsconfig.json`, on purpose. A script that is green
 in that repository's CI must be green here, and the other way round.
 
-| Option               | Value                                                                                                 |
-| -------------------- | ----------------------------------------------------------------------------------------------------- |
-| `target` / `module`  | ES2023 / ESNext                                                                                       |
-| `moduleResolution`   | Bundler. From a script, only `zod` and `zod/mini` resolve                                             |
-| `skipLibCheck`       | on: Zod's d.ts is not checked (three scripts take 117 ms instead of 556 ms)                           |
-| `lib`                | ES2023 and DOM                                                                                        |
-| `strict`             | on                                                                                                    |
-| `erasableSyntaxOnly` | on: no enums, namespaces or parameter properties, so the JavaScript is the TypeScript minus its types |
-| `removeComments`     | off: comments survive into the archive                                                                |
+| Option               | Value                                                                                                                                                                                                   |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `target` / `module`  | ES2023 / ESNext                                                                                                                                                                                         |
+| `moduleResolution`   | Bundler. From a script, only `zod` and `zod/mini` resolve                                                                                                                                               |
+| `skipLibCheck`       | on: Zod's d.ts is not checked (three scripts take 117 ms instead of 556 ms)                                                                                                                             |
+| `lib`                | ES2023 and DOM                                                                                                                                                                                          |
+| `strict`             | on                                                                                                                                                                                                      |
+| `erasableSyntaxOnly` | on: no enums, namespaces or parameter properties, so emit adds no code beyond dropping the types; tsc still reprints the JavaScript, so its indentation, whitespace and size differ from the TypeScript |
+| `removeComments`     | off: comments survive into the archive                                                                                                                                                                  |
 
 The emitted JavaScript begins with `"use strict";`, which the compiler adds to every non-module
 file and the assembly adds to a script that [reads Zod](#reading-zod).
