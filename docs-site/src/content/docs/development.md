@@ -125,8 +125,9 @@ would produce. It also sends a script that reads Zod and expects a 200, which fa
 fell out of the `--prod` dependencies.
 
 Pushing a tag `vX.Y.Z` runs `.github/workflows/release.yaml`, which builds `linux/arm64` on an
-ARM runner and pushes `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z`. The `version` in
-`package.json` is not the version. The tag is.
+ARM runner and pushes `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z`. The tag goes on the merge
+commit of a pull request titled `release: vX.Y.Z — summary`, which also sets `version` in
+`package.json` to `X.Y.Z`; `.github/workflows/release-version.yaml` fails it when the two differ.
 
 ## Documentation
 
