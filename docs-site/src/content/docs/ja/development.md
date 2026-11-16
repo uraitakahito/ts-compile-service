@@ -112,8 +112,9 @@ CI は pull request ごとに image を建てて起こし、型エラーのあ�
 送り、200 を見ます。zod か esbuild が `--prod` の依存から落ちていれば、ここで落ちます。
 
 tag `vX.Y.Z` を push すると `.github/workflows/release.yaml` が走り、ARM の runner で `linux/arm64` を
-建てて `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z` に出します。`package.json` の `version` は版では
-ありません。版は tag です。
+建てて `ghcr.io/uraitakahito/ts-compile-service:vX.Y.Z` に出します。tag は、題が `release: vX.Y.Z — 要約` の PR の
+merge の commit に打ちます。その PR で `package.json` の `version` も `X.Y.Z` に上げ、2 つが食い違うと
+`.github/workflows/release-version.yaml` が赤にします。
 
 ## docs
 
